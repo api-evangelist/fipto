@@ -1,0 +1,41 @@
+generated: '2026-08-17'
+method: searched
+source: https://docs.fipto.com/llms.txt
+also: openapi/fipto-customer-api-openapi.yml
+limit_count: 0
+note: >-
+  Fipto documents NO HTTP rate limits. The word "rate limit" does not appear on any of the 54 API
+  reference pages or the 14 developer guides, no operation declares a 429 response, no RateLimit-* or
+  X-RateLimit-* response header is documented, and no Retry-After behaviour is described. An agent
+  calling this API has no runtime backpressure signal at all and cannot distinguish throttling from
+  failure. Recorded as an honest zero.
+limits: []
+response_headers: []
+status_on_exhaustion: null
+retry_after: null
+business_limits:
+  note: >-
+    Distinct from HTTP rate limits: Fipto DOES enforce per-company commercial limits, set by Fipto and
+    visible in the data model rather than in the runtime headers. These throttle money movement, not
+    request volume, and they surface as 400 error messages rather than 429s.
+  fields:
+  - {name: daily_conversion_volume_limit_eur, description: Daily trade limit in EUR}
+  - {name: limit_rate_payout, description: Limit of daily payouts creatable for a specific company}
+  - {name: limit_total_wallet_details, description: Limit of total wallet details creatable for a
+      specific company}
+  source: openapi/_original/fipto-customer-api-openapi.json (company schemas)
+  surfaced_as:
+  - 'Manual flow required: company trading limits hit'
+  - 'Manual flow required: amount is above the maximum eur trading volume: {n}'
+  - 'Manual flow required: amount is below the minimum eur trading volume: {n}'
+  detail: errors/fipto-problem-types.yml
+webhook_delivery_limits:
+  note: The only quantified retry/backoff contract Fipto publishes runs in the OUTBOUND direction —
+    webhook delivery to the customer, not customer requests to Fipto.
+  timeout_seconds: 5
+  retries_max: 10
+  schedule_seconds: [2, 4, 8, 16, 32, 64, 128, 256, 512, 900]
+  detail: asyncapi/fipto-webhooks.yml
+evidence:
+- {url: 'https://docs.fipto.com/llms.txt', status: 200, finding: no rate-limit page in the documentation index}
+- {source: openapi/fipto-customer-api-openapi.yml, finding: '0 of 52 operations declare a 429 response'}

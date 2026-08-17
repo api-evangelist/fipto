@@ -42,6 +42,13 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Fipto is a company surfaced as a portfolio company of serena and added to the API Evangelist network as a stub for enrichment. Sector: blockchain. This profile is a lead awaiting the enrichment pipeline.
+Fipto is a Paris-based enterprise stablecoin payments and multi-currency accounts platform that lets businesses send and receive both fiat and stablecoin payments, hold multi-asset wallets with EUR and USD named accounts, convert between fiat and digital currencies, and automate treasury and reconciliation. Fipto PI SAS is licensed as a Payment Institution by France's ACPR (CIB 17908) and as a Crypto-Asset Service Provider by the AMF under MiCA (authorisation A2026-009), and is ISO/IEC 27001:2022 certified.
+
+Fipto publishes a REST API (OpenAPI 3.0.3, version 4.3.0 — 39 paths, 52 operations) covering wallets, beneficiaries, payouts, transactions, conversions, payment links, automation rules and a PSD2 AISP/PISP delegated-access surface, plus a signed webhook contract and an open-source Model Context Protocol server for AI agents.
+
+- Documentation: https://docs.fipto.com/
+- API reference: https://docs.fipto.com/reference/getting-started
+- Status: https://status.fipto.com/
+- MCP server: https://github.com/fipto/mcp-fipto
 
 Source: portfolio company of [serena](https://github.com/api-evangelist/serena) — https://fipto.com

@@ -1,0 +1,34 @@
+generated: '2026-08-17'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: fipto.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov  9 04:52:31 2026 GMT
+  hsts: true
+  hsts_max_age: 31536000
+- host: docs.fipto.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov 13 13:06:19 2026 GMT
+  hsts: true
+  hsts_max_age: 31536000
+- host: api.fipto.app
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Feb 15 23:59:59 2027 GMT
+  hsts: null
+domains:
+- domain: fipto.com
+  dnssec: true
+  caa: []
+  spf: true
+  dmarc: true
+  dmarc_policy: reject
+- domain: fipto.app
+  dnssec: true
+  caa: []
+  spf: true
+  dmarc: true
+  dmarc_policy: reject

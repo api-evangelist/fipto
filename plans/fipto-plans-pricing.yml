@@ -1,0 +1,29 @@
+generated: '2026-08-17'
+method: searched
+source: https://www.fipto.com/sitemap.xml
+also: https://www.fipto.com/, https://www.fipto.com/demo
+plan_count: 0
+pricing_page: null
+note: >-
+  Fipto publishes NO pricing. There is no /pricing page anywhere in the sitemap (123 URLs enumerated,
+  covering products, clients, developers, legal and blog in both English and French), no rate card, no
+  fee schedule and no published spread or FX margin. Every commercial path terminates in
+  "Book a demo" / "Get started" at https://www.fipto.com/demo, and API credentials are only issued
+  after KYB. This is an enterprise contact-sales model; the absence is recorded rather than omitted.
+  No `Pricing` pointer is emitted in apis.yml because there is no pricing page to point at.
+model: contact-sales
+sales_contact: https://www.fipto.com/demo
+plans: []
+commercial_signals:
+- signal: Fipto publishes an article on crypto-intermediary pricing (exchanges vs brokers, spread and
+    slippage) but discloses no Fipto fee, spread or margin figure.
+  url: https://www.fipto.com/articles/crypto-intermediary-pricing-exchanges-vs-brokers-spread-and-slippage
+- signal: Company-level commercial limits exist in the data model (daily conversion volume limit in
+    EUR, daily payout creation limit, total wallet-details limit) and are set per company by Fipto,
+    which confirms per-contract commercial terms rather than published tiers.
+  source: openapi/_original/fipto-customer-api-openapi.json (admin company schemas)
+evidence:
+- {url: 'https://www.fipto.com/sitemap.xml', status: 200, finding: no /pricing or /plans URL present}
+- {url: 'https://www.fipto.com/pricing', status: 404}
+- {url: 'https://www.fipto.com/plans', status: 404}
+- {url: 'https://www.fipto.com/demo', status: 200, finding: book-a-demo form is the only commercial entry point}

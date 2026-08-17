@@ -1,0 +1,91 @@
+generated: '2026-08-17'
+method: derived
+source: openapi/fipto-customer-api-openapi.yml
+format: json-api-like
+note: >-
+  Fipto does NOT use RFC 9457 problem+json. Every error response is application/json. Two distinct
+  envelopes are in use across the same API, which is itself the finding: a JSON:API-shaped
+  `json_error` object (source.pointer + detail + code) declared in components, and a flat
+  `{ "data": { "message": "..." } }` envelope used by the newer Automations, Quotes, Beneficiaries
+  and Payment Links 400 responses. An agent must handle both. Fipto publishes no consolidated error
+  reference page, so the catalog below is derived from the contract only.
+envelopes:
+- id: json_error
+  schema: components.schemas.json_error
+  content_type: application/json
+  shape:
+    source: {pointer: string}
+    detail: string
+    code: string
+  note: JSON:API error-object shape. `code` is a free-form string; no enumerated registry is published.
+- id: data_message
+  content_type: application/json
+  shape:
+    data: {message: string}
+  note: >-
+    Used by the 400 responses on createAQuote, confirmQuoteStatus, createBeneficiary,
+    createBatchBeneficiaries, createPaymentLinks and all five Automations operations. The spec
+    constrains `message` with a oneOf of regex `pattern`s rather than an enum of codes, so the
+    machine-readable discriminator is the literal English sentence.
+problems:
+- status: 400
+  title: Bad Request
+  envelope: data_message
+  count: 10
+  source_operations: [createAQuote, confirmQuoteStatus, createBatchBeneficiaries, createBeneficiary,
+    listAutomations, createAutomation, getAutomation, updateAutomation, deleteAutomation,
+    createPaymentLinks]
+- status: 403
+  title: Forbidden — user is not authorized by the company's authorization policy.
+  envelope: none
+  count: 1
+  source_operations: [createBeneficiary]
+  note: Declared with no response body schema at all.
+- status: 404
+  title: Not Found
+  envelope: data_message
+  count: 6
+  source_operations: [confirmQuoteStatus, createAutomation, getAutomation, updateAutomation,
+    deleteAutomation, getConversion]
+documented_messages:
+  note: >-
+    The 29 message strings the spec pins with regex patterns on 400 responses, verbatim. These are the
+    closest thing Fipto publishes to an error-code registry. Grouped by the domain that raises them.
+  conversions_quotes:
+  - Asset codes of buy and sell wallets must be different
+  - Buy wallet not found
+  - Sell wallet not found
+  - Wallets not found
+  - Sell amount must have {n} decimals
+  - Quote not found
+  - Quote already validated
+  - Quote is expired
+  - Quote is not in submitted status
+  - 'Manual flow required: amount is above the maximum eur trading volume: {n}'
+  - 'Manual flow required: amount is below the minimum eur trading volume: {n}'
+  - 'Manual flow required: company trading limits hit'
+  - 'Manual flow required: pair is forbidden'
+  - Insufficient funds
+  automations:
+  - Automation is not enabled for this company
+  - Invalid rule_type. Must be 'conversion' or 'payout'
+  - Invalid trigger_event. Must be 'payin_completed' or 'conversion_completed'
+  - Conversion rules can only be triggered by 'payin_completed'
+  - Invalid amount_mode. Must be 'full' or 'inherited'
+  - Source wallet asset is not eligible for automation. Only EUR, USD, and stablecoins are supported
+  - This beneficiary targets a Fipto wallet and cannot be used for automation
+  - This wallet already has an active automation rule for this trigger event. Only one rule per trigger
+    event per wallet is allowed
+  - destination_wallet_id is required for conversion rules
+  - destination_beneficiary_id is required for payout rules
+  - Destination wallet must be different from source wallet
+  - Destination wallet must have a different currency for conversions
+  - Beneficiary currency must match source wallet currency for payouts
+  - Cannot update a deleted automation rule
+  - This automation rule has already been deleted
+gaps:
+- No 401 response is declared on any of the 52 operations, despite every request requiring a signed
+  Authorization header — an agent has no contract for what an auth failure looks like.
+- No 429 response is declared and no rate-limit semantics are documented.
+- No 5xx response is declared on any operation.
+- No `type` URI per RFC 9457 and no stable machine-readable error code registry.

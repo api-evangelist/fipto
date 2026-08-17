@@ -1,0 +1,92 @@
+generated: '2026-08-17'
+method: derived
+source: mcp/fipto-mcp.yml + openapi/fipto-customer-api-openapi.yml
+note: >-
+  Binds every tool the Fipto MCP server exposes to the OpenAPI operation that backs it. Each tool's
+  REAL input contract is that operation's parameters in the spec. The live tools/list could not be
+  introspected (stdio-only server, credentialed), so bindings are matched by name, documented
+  parameters and semantics; confidence is recorded per row.
+surfaces:
+  openapi:
+    file: openapi/fipto-customer-api-openapi.yml
+    version: 4.3.0
+    server: https://api.fipto.app
+    operations: 52
+    gated: false
+    note: The reference is public; calling it requires Fipto-issued credentials.
+  mcp:
+    transport: stdio
+    package: "@fipto/mcp-fipto"
+    url: null
+    gated: true
+    note: No hosted endpoint exists, so tools/list cannot be POSTed. Tool set read from the README.
+  graphql:
+    endpoint: null
+    note: Fipto publishes no GraphQL surface.
+crosswalk:
+- tool: list_my_companies
+  category: companies
+  rest: [listCompaniesByUser]
+  binding: rest
+  confidence: high
+  note: >-
+    GET /companies — "Retrieve companies linked to the logged user", the exact semantics the tool
+    description states ("companies the current user is a member of"). No parameters on either side.
+- tool: list_company_wallets
+  category: wallets
+  rest: [listWallets]
+  binding: rest
+  confidence: high
+  note: >-
+    GET /companies/{company_id}/wallets. The tool's only parameter, company_id (uuid), is the
+    operation's only required path parameter. The REST operation additionally accepts assets,
+    page_number, page_size and sort, which the tool does not expose.
+- tool: list_company_transactions
+  category: transactions
+  rest: [searchTransactionsByCompanyId]
+  binding: rest
+  confidence: high
+  note: >-
+    GET /companies/{company_id}/transactions. Every documented tool parameter — transaction_types,
+    asset_types, page_number, page_size, sort, wallet_id, statuses, can_be_signed_by — is a query
+    parameter on this operation, which is why the binding is unambiguous.
+mcp_only: []
+rest_only:
+- capability: Wallets — create and manage
+  operations: [createWalletByCompanyId, getWallet, updateWalletName, createWalletDetailsByWalletId,
+    getWalletDetailsByWalletId, getWalletDetails, updateWalletDetails, getWalletDetailsPDF]
+- capability: Beneficiaries — create, verify, Travel Rule
+  operations: [createBeneficiary, createBatchBeneficiaries, validateBatchBeneficiary, listBeneficiaries,
+    searchBeneficiaries, deleteBeneficiary, verifyBeneficiary, updateBeneficiaryTravelRule]
+- capability: Payouts and transfers
+  operations: [initiatePayout, createInternalTransfer]
+- capability: Transactions — single reads
+  operations: [getCompanyTransaction, listOperationByOperationIds]
+- capability: Conversions and quotes
+  operations: [createAQuote, confirmQuoteStatus, getPairs, getConversion]
+- capability: Payment links
+  operations: [createPaymentLinks, getPaymentLink, listPaymentLinks, updatePaymentLink]
+- capability: Automation rules
+  operations: [listAutomations, createAutomation, getAutomation, updateAutomation, deleteAutomation]
+- capability: Companies and assets
+  operations: [getCompany, listAssets, requestUsdOnboarding]
+- capability: AISP/PISP delegated access
+  operations: [listAISPPISP, createCompanyAISPPISP, listCompanyAISPPISP, getCompanyAISPPISP,
+    deleteCompanyAISPPISP, initiatePayoutAISPPISP, getWalletAISPPISP, listWalletAISPPISP,
+    searchTransactionsAISPPISPByCompanyId, getTransactionAISPPISP, listBeneficiariesAISPPISP,
+    getBeneficiaryAISPPISP]
+- capability: Sandbox simulation
+  operations: [simulatePayin]
+coverage:
+  tools_named: 3
+  tools_bound: 3
+  mcp_only: 0
+  rest_operations_total: 52
+  rest_operations_with_tool: 3
+  rest_operations_without_tool: 49
+  percent_rest_covered_by_mcp: 5.8
+divergence_note: >-
+  The MCP surface is a narrow read-only projection of the REST core: 3 of 52 operations. Every write
+  path — payouts, beneficiaries, conversions, payment links, automations — is REST-only today, which
+  matches Fipto's published phase-2 roadmap. An agent given only the MCP server can observe Fipto but
+  cannot move money through it.

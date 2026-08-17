@@ -1,25 +1,135 @@
 aid: fipto
 name: Fipto
-description: 'Fipto is a company surfaced as a portfolio company of serena and added to the API Evangelist
-  network as a stub for enrichment. Sector: blockchain. This profile is a lead awaiting the enrichment
-  pipeline.'
+description: 'Fipto is a Paris-based enterprise stablecoin payments and multi-currency accounts platform
+  that lets businesses send and receive both fiat and stablecoin payments, hold multi-asset wallets with
+  EUR and USD named accounts, convert between fiat and digital currencies, and automate treasury and
+  reconciliation. It is licensed as a Payment Institution by France''s ACPR (code 17908) and as a
+  Crypto-Asset Service Provider by the AMF under MiCA (authorization A2026-009), and is ISO/IEC
+  27001:2022 certified. Fipto publishes a REST API (OpenAPI 3.0.3) covering wallets, beneficiaries,
+  payouts, transactions, conversions, payment links, automation rules and an AISP/PISP access surface,
+  plus signed webhooks and an open-source Model Context Protocol server for AI agents.'
 url: https://raw.githubusercontent.com/api-evangelist/fipto/refs/heads/main/apis.yml
 x-type: company
 x-source: serena-portfolio
-x-tier: stub
-x-tier-reason: portfolio-lead
 specificationVersion: '0.20'
 created: '2026-08-17'
 modified: '2026-08-17'
+image: https://kinlane-productions2.s3.amazonaws.com/apis-json/apis-json-logo.jpg
 tags:
 - Company
 - Blockchain
-apis: []
+- Payments
+- Stablecoins
+- Banking
+- Treasury
+- Cross-Border Payments
+- Digital Currency
+- Fintech
+- Wallets
+apis:
+- aid: fipto:customer-api
+  name: Fipto API
+  description: 'The Fipto REST API (OpenAPI 3.0.3, version 4.3.0) for stablecoin and fiat payments:
+    company assets, multi-asset wallets and wallet details (IBAN/blockchain addresses), beneficiaries
+    with Travel Rule and Verification of Payee support, payouts and internal transfers, transaction and
+    operation search, conversions and quotes, payment links, automation rules, and a delegated AISP/PISP
+    access surface. Requests are authenticated with HTTP Message Signatures (draft-cavage-12) using an
+    RSA key pair issued during onboarding.'
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Payments
+  - Stablecoins
+  - Wallets
+  - Beneficiaries
+  - Conversions
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-customer-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: AgenticAccess
+  url: agentic-access/fipto-agentic-access.yml
 - type: Website
   url: https://fipto.com
+- type: DeveloperPortal
+  url: https://docs.fipto.com/
+- type: Documentation
+  url: https://docs.fipto.com/docs/introduction
+- type: APIReference
+  url: https://docs.fipto.com/reference/getting-started
+- type: GettingStarted
+  url: https://docs.fipto.com/docs/introduction
+- type: Authentication
+  url: authentication/fipto-authentication.yml
+- type: Support
+  url: https://www.fipto.com/contact
+- type: Blog
+  url: https://www.fipto.com/company/blog
+- type: SignUp
+  url: https://www.fipto.com/demo
+- type: Login
+  url: https://fipto.app/
+- type: TermsOfService
+  url: https://www.fipto.com/legal/terms-and-conditions
+- type: PrivacyPolicy
+  url: https://www.fipto.com/legal/privacy
+- type: Postman
+  url: https://www.postman.com/galactic-meadow-917828/workspace/fipto-api-demo-environment/collection/24959087-42b9da95-ca00-4b9a-89cc-52d84d432d5f
+- type: StatusPage
+  url: https://status.fipto.com/
+- type: Compliance
+  url: https://www.fipto.com/company/compliance
+- type: LLMsTxt
+  url: llms/fipto-llms.txt
+- type: MCPServer
+  url: mcp/fipto-mcp.yml
+- type: Packages
+  url: packages/fipto-packages.yml
+- type: Overlay
+  url: overlays/fipto-customer-api-overlay.yaml
+- type: Conformance
+  url: conformance/fipto-conformance.yml
+- type: ErrorCatalog
+  url: errors/fipto-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/fipto-lifecycle.yml
+- type: DomainSecurity
+  url: security/fipto-domain-security.yml
+- type: TrustCenter
+  url: security/fipto-trust-center.yml
+- type: Sandbox
+  url: sandbox/fipto-sandbox.yml
+- type: Conventions
+  url: conventions/fipto-conventions.yml
+- type: Components
+  url: components/fipto-components.yml
+- type: DataModel
+  url: data-model/fipto-data-model.yml
+- type: Webhooks
+  url: asyncapi/fipto-webhooks.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Plans
+  url: plans/fipto-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/fipto-rate-limits.yml
+x-enrichment:
+  date: '2026-08-17'
+  status: enriched
+  artifacts_added: 28
+  pass: local-v1

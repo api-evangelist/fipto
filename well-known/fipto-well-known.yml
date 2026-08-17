@@ -1,0 +1,32 @@
+generated: '2026-08-17'
+method: probed
+source: live GET of /.well-known/* on every Fipto host in apis.yml and the OpenAPI servers[]
+note: >-
+  Every probed path returned 404. Fipto serves NO /.well-known/ discovery surface — no security.txt,
+  no OIDC/OAuth metadata (consistent with its HTTP-signature auth model, which has no authorization
+  server), no api-catalog, no agent card. No WellKnown or SecurityTxt pointer is emitted in apis.yml,
+  because a recorded absence must not be scored as a presence. api.fipto.app answers 403 to every
+  anonymous request including /.well-known/*, so it could not be probed at all.
+hosts:
+- host: https://www.fipto.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+- host: https://docs.fipto.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+- host: https://api.fipto.app
+  note: WAF returns 403 to all anonymous requests; not probeable without credentials
+  documents:
+  - {path: /.well-known/security.txt, status: 403}
+  - {path: /.well-known/agent-card.json, status: 403}
+found: 0

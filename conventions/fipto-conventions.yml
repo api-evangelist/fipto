@@ -1,0 +1,143 @@
+generated: '2026-08-17'
+method: derived
+source: openapi/fipto-customer-api-openapi.yml + https://docs.fipto.com/docs/api-authentication
+docs: https://docs.fipto.com/reference/getting-started
+note: >-
+  Cross-cutting request/response semantics for the Fipto API, derived from the published OpenAPI 3.0.3
+  contract and the authentication/webhook guides. Where a convention is NOT published, that is recorded
+  as an explicit gap rather than guessed.
+authentication:
+  style: http-message-signature
+  standard: draft-cavage-http-signatures-12
+  header: Signature
+  algorithm: hs2019 / rsa-sha256
+  declared_in_openapi: false
+  detail: authentication/fipto-authentication.yml
+envelope:
+  style: json-api-like
+  request: '{ "data": { "type": "<resource>", "attributes": { ... } } }'
+  response_single: '{ "data": { "id": "<uuid>", "type": "<resource>", "attributes": { ... } }, "meta": { ... } }'
+  response_collection: '{ "data": [ ... ], "meta": { "total_results": n, "query_parameters": { ... } } }'
+  base_schemas: [data_default, object_id, meta, pagination]
+  note: >-
+    Every payload is wrapped in a `data` member carrying `type` and `attributes`, JSON:API style, but
+    Fipto does not claim JSON:API conformance and does not use the application/vnd.api+json media
+    type — everything is application/json.
+identifiers:
+  format: uuid
+  detail: Every resource id (company, wallet, wallet_details, beneficiary, transaction, quote,
+    conversion, payment_link, automation, aisp_pisp, event) is a bare UUID. There are no typed or
+    prefixed id strings, so an id alone does not tell an agent what kind of object it points at.
+  scoping: >-
+    Almost every path is scoped under /companies/{company_id}/, and company_id is a required path
+    parameter on 50 of 52 operations. An agent must resolve the company first via listCompaniesByUser.
+pagination:
+  style: page-number
+  params:
+  - {name: page_number, in: query, type: number, default: 1}
+  - {name: page_size, in: query, type: number, default: 100}
+  - {name: sort, in: query, type: string, enum: [created_at, transaction_created_at]}
+  response_fields:
+  - meta.total_results
+  - meta.query_parameters.page_number
+  - meta.query_parameters.page_size
+  - meta.query_parameters.sort
+  cursors: false
+  link_relations: false
+  note: Offset/page pagination with a total count. No next/prev links and no cursor, so a client
+    paging a moving transaction list can miss or repeat rows.
+request_tracing:
+  supported: true
+  field: meta.request_id
+  type: uuid
+  location: response body (meta object), not a header
+  note: >-
+    Every response carries meta.request_id. It is a body field, not an X-Request-Id response header,
+    so it cannot be read from a failed or non-JSON response.
+filtering:
+  style: repeated query parameters
+  common:
+  - {name: date_from, description: Filter to get data after or at the specific date}
+  - {name: date_to, description: Filter to get data before or at the specific date}
+  - {name: statuses, description: Filter for specific statuses}
+  - {name: transaction_types, description: Filter for specific transaction types}
+  - {name: asset_types, description: Filter for specific asset types}
+  - {name: wallet_id, description: Filter for a specific wallet}
+valuation:
+  param: valuation_asset
+  values: [EUR, USD]
+  default: EUR
+  also: valuation_date (UTC)
+  note: >-
+    A Fipto-specific convention with no analogue in most payment APIs — multi-asset balances and
+    transactions can be re-valued into EUR or USD at read time, and valuations[] is returned alongside
+    the native asset amount.
+field_expansion:
+  supported: false
+sparse_fields:
+  supported: false
+metadata:
+  customer_metadata_supported: false
+  note: No arbitrary customer-supplied metadata field is exposed on any resource in the published spec.
+idempotency:
+  request_idempotency:
+    supported: false
+    header: null
+    note: >-
+      NO idempotency key exists anywhere in the contract or the docs. There is no Idempotency-Key
+      header, no client-supplied reference field on initiatePayout, createInternalTransfer,
+      createAQuote or createPaymentLinks, and the word "idempotent" does not appear in any
+      documentation page. Fipto's crypto-brokers marketing page claims "idempotent, paginated,
+      predictable endpoints"; the published contract does not support that claim. A retried payout is
+      not safe. No `Idempotency` pointer is emitted in apis.yml for this reason.
+  webhook_idempotency:
+    supported: true
+    field: event_id
+    scope: webhook delivery only
+    note: >-
+      Fipto explicitly documents de-duplication for INBOUND webhooks — every event carries a UUID
+      event_id and the docs instruct consumers to ignore already-processed ids, because the retry
+      policy can deliver the same event twice. This protects the customer's handler; it does not make
+      Fipto's own write operations idempotent.
+    docs: https://docs.fipto.com/docs/webhooks
+versioning:
+  scheme: none-in-path
+  current: 4.3.0
+  location: OpenAPI info.version only
+  note: >-
+    There is no version segment in the URL (paths start at /companies), no version header, and no
+    version query parameter. The only version signal is info.version in the spec document, which a
+    running client never sees. Breaking-change communication has no channel.
+  detail: lifecycle/fipto-lifecycle.yml
+error_envelope:
+  formats: [json_error, data_message]
+  rfc9457: false
+  detail: errors/fipto-problem-types.yml
+rate_limit_signaling:
+  documented: false
+  headers: []
+  status_on_exhaustion: null
+  detail: rate-limits/fipto-rate-limits.yml
+concurrency_control:
+  etag: false
+  if_match: false
+approval_semantics:
+  note: >-
+    Money movement is not a single call. Payout and transfer statuses include "awaiting co-signer" and
+    "awaiting approval", and createAutomation requires 2FA verification. An agent that treats a 2xx on
+    initiatePayout as "money sent" is wrong; it must poll the transaction status.
+  statuses:
+    payout: [pending, rejected, completed, awaiting co-signer, insufficient funds, in process,
+      submitted, awaiting approval]
+    payin: [in transit, completed, returned, waiting for travel rule information]
+    transfer: [pending, refused, completed, awaiting co-signer, insufficient funds, in process, submitted]
+    conversion: [confirmed, completed, returned, insufficient funds]
+    payment_link: [pending, completed, underpaid, overpaid]
+  docs: https://docs.fipto.com/docs/transaction-statuses
+cross_links:
+  authentication: authentication/fipto-authentication.yml
+  errors: errors/fipto-problem-types.yml
+  lifecycle: lifecycle/fipto-lifecycle.yml
+  rate_limits: rate-limits/fipto-rate-limits.yml
+  webhooks: asyncapi/fipto-webhooks.yml
+  sandbox: sandbox/fipto-sandbox.yml

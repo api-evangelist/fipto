@@ -1,0 +1,153 @@
+generated: '2026-08-17'
+method: derived
+source: openapi/fipto-customer-api-openapi.yml
+note: >-
+  Entity graph derived from the published OpenAPI 3.0.3 contract — schema $refs and the *_id reference
+  fields that link them. Everything is scoped to a Company: company_id is a required path parameter on
+  50 of the 52 published operations. All identifiers are bare UUIDs with no type prefix, so an id
+  alone does not reveal its entity type.
+id_format:
+  style: uuid
+  prefixed: false
+  note: No typed id prefixes (no `wal_`, `bnf_`, `txn_`). Type must be carried alongside the id, which
+    the JSON:API-style `data.type` member does in responses but nothing does in a bare reference field.
+entities:
+- name: company
+  description: The tenant. Every other entity belongs to exactly one company.
+  id: company_id
+  operations: [listCompaniesByUser, getCompany]
+  relationships:
+  - {type: has_many, target: wallet, via: company_id}
+  - {type: has_many, target: beneficiary, via: company_id}
+  - {type: has_many, target: transaction, via: company_id}
+  - {type: has_many, target: payment_link, via: company_id}
+  - {type: has_many, target: automation_rule, via: company_id}
+  - {type: has_many, target: aisp_pisp, via: company_id}
+  - {type: has_many, target: asset, via: company_id}
+  - {type: has_one, target: company, via: parent_company_id, note: parent/child company hierarchy}
+- name: asset
+  description: A currency or token supported for a company — fiat (EUR, USD) or digital (stablecoins,
+    crypto).
+  operations: [listAssets, requestUsdOnboarding]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+- name: wallet
+  description: A multi-asset balance container held by a company.
+  id: wallet_id
+  operations: [createWalletByCompanyId, listWallets, getWallet, updateWalletName]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: has_many, target: wallet_details, via: wallet_id}
+  - {type: has_many, target: transaction, via: wallet_id}
+  - {type: has_many, target: automation_rule, via: source_wallet_id}
+- name: wallet_details
+  description: >-
+    The addressable coordinates OF a wallet — an IBAN for a fiat wallet, or a blockchain address (plus
+    optional tag) for a digital wallet. This is the second-level entity most integrations miss: funds
+    are received against wallet_details, not against the wallet itself.
+  id: wallet_details_id
+  operations: [createWalletDetailsByWalletId, getWalletDetailsByWalletId, getWalletDetails,
+    updateWalletDetails, getWalletDetailsPDF]
+  relationships:
+  - {type: belongs_to, target: wallet, via: wallet_id}
+  attributes_of_note: [iban, address, tag, name]
+- name: beneficiary
+  description: A payout counterparty — a fiat bank account or an external blockchain address.
+  id: beneficiary_id
+  operations: [createBeneficiary, createBatchBeneficiaries, validateBatchBeneficiary, listBeneficiaries,
+    searchBeneficiaries, deleteBeneficiary, verifyBeneficiary, updateBeneficiaryTravelRule]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: has_many, target: transaction, via: destination_beneficiary_id}
+  statuses: [active, pending, rejected, awaiting_approval]
+  attributes_of_note: [travel_rule_status, account_number, account_number_type, bank_identifier_type,
+    bank_country_code]
+- name: transaction
+  description: >-
+    The polymorphic money-movement record. `type` discriminates payin, payout, conversion, internal
+    transfer and other transfer; each carries type-specific attributes on top of a common core.
+  id: transaction_id
+  operations: [searchTransactionsByCompanyId, getCompanyTransaction, initiatePayout,
+    createInternalTransfer, simulatePayin]
+  subtypes: [payin, payout, conversion, internal_transfer, other_transfer]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: belongs_to, target: wallet, via: wallet_id}
+  - {type: belongs_to, target: beneficiary, via: destination_beneficiary_id, note: payouts only}
+  - {type: has_one, target: transaction, via: linked_transaction_id}
+  - {type: has_one, target: transaction, via: original_transaction_id, note: recalls/returns}
+  - {type: has_many, target: operation, via: operation_id}
+  - {type: has_many, target: valuation, via: 'embedded valuations[]'}
+  attributes_of_note: [blockchain_data.transaction_hash, blockchain_data.block_explorer_link,
+    end_to_end_id, reference]
+- name: operation
+  description: The accounting-level leg of a transaction; a transaction can decompose into several.
+  id: operation_id
+  operations: [listOperationByOperationIds]
+  relationships:
+  - {type: belongs_to, target: transaction, via: transaction_id}
+- name: valuation
+  description: The value of an asset amount expressed in a valuation asset (EUR or USD) at a point in
+    time. Embedded, not addressable.
+  relationships:
+  - {type: belongs_to, target: transaction, via: embedded}
+- name: quote
+  description: A priced, time-limited conversion offer that must be confirmed before it executes.
+  id: quote_id
+  operations: [createAQuote, confirmQuoteStatus]
+  statuses: [submitted, pending, confirmed]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: belongs_to, target: wallet, via: sell_wallet_id}
+  - {type: belongs_to, target: wallet, via: buy_wallet_id}
+  - {type: has_one, target: conversion, via: execution}
+- name: conversion
+  description: The executed result of a confirmed quote.
+  id: conversion_id
+  operations: [getConversion, getPairs]
+  statuses: [confirmed, completed, returned, insufficient funds]
+  relationships:
+  - {type: belongs_to, target: quote, via: quote_id}
+  - {type: belongs_to, target: company, via: company_id}
+- name: payment_link
+  description: A Fipto-hosted checkout URL for collecting a stablecoin payment.
+  id: payment_link_id
+  operations: [createPaymentLinks, getPaymentLink, listPaymentLinks, updatePaymentLink]
+  statuses: [pending, completed, underpaid, overpaid]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: has_many, target: transaction, via: payment link settlement}
+- name: automation_rule
+  description: >-
+    A trigger-action rule that fires an automatic conversion or payout on payin_completed or
+    conversion_completed. One rule per trigger event per wallet.
+  id: automation_id
+  operations: [listAutomations, createAutomation, getAutomation, updateAutomation, deleteAutomation]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: belongs_to, target: wallet, via: source_wallet_id}
+  - {type: has_one, target: wallet, via: destination_wallet_id, note: conversion rules}
+  - {type: has_one, target: beneficiary, via: destination_beneficiary_id, note: payout rules}
+- name: aisp_pisp
+  description: A registered PSD2 third-party provider granted delegated access to a company.
+  id: aisp_pisp_id
+  operations: [listAISPPISP, createCompanyAISPPISP, listCompanyAISPPISP, getCompanyAISPPISP,
+    deleteCompanyAISPPISP]
+  relationships:
+  - {type: belongs_to, target: company, via: company_id}
+  - {type: has_many, target: transaction, via: delegated read/initiate scope}
+- name: user
+  description: A person linked to one or more companies; also the payout co-signer identity.
+  id: user_id
+  relationships:
+  - {type: has_many, target: company, via: membership}
+  - {type: has_many, target: transaction, via: can_be_signed_by}
+relationship_count: 30
+entity_count: 14
+spec_surface_note: >-
+  The published components block (413 schemas, 77 parameters) is a superset of the 52 public
+  operations — it also carries admin/back-office schemas (admin_company_data, employee_data,
+  authorization_group_data, chainalysis_alert_data, fi_customer_data, rfot_data, plan_data,
+  transaction_export_data, note_data, product_setting_data and others) whose paths are NOT exposed in
+  the public reference. Those internal entities are deliberately excluded from the graph above; only
+  entities reachable through a published operation are modelled.

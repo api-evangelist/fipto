@@ -1,0 +1,94 @@
+# Fipto | Stablecoin Payments & Multi-Currency Accounts API Documentation
+
+> Integrate global payments with our API: send and receive fiat and stablecoin payments, and automate treasury and reconciliation with developer-friendly docs.
+
+## Guides
+- [Set up an account](https://docs.fipto.com/docs/introduction.md): Learn how to get access to the product
+- [Supported assets](https://docs.fipto.com/docs/supported-assets.md): See what assets are supported by our product
+- [API Authentication](https://docs.fipto.com/docs/authentication-1.md): Start making requests to the API
+- [Authentication](https://docs.fipto.com/docs/api-authentication.md): Build your own HTTP signature request
+- [Postman setup](https://docs.fipto.com/docs/postman-guide.md): Try our API using our public collection on Postman
+- [Webhooks](https://docs.fipto.com/docs/webhooks.md)
+- [Wallets](https://docs.fipto.com/docs/guides.md): Set up a wallet and start receiving and sending funds
+- [Beneficiaries](https://docs.fipto.com/docs/send-funds.md): Add your partners and suppliers as beneficiaries
+- [Initiate a payment](https://docs.fipto.com/docs/beneficiaries-1.md): Send funds to your beneficiaries
+- [Transactions](https://docs.fipto.com/docs/transaction-statuses.md): Discover transaction types and their workflows
+- [Conversion](https://docs.fipto.com/docs/conversion.md)
+- [Build a checkout with payment link](https://docs.fipto.com/docs/build-a-checkout-for-stablecoin-payments.md)
+- [Payment Link Overview](https://docs.fipto.com/docs/understanding-the-payment-links-flow.md)
+- [Create a Payment Link](https://docs.fipto.com/docs/create-a-payment-link.md)
+- [The Payer Flow](https://docs.fipto.com/docs/send-or-redirect-to-the-payment-link.md)
+- [Edge Case Management](https://docs.fipto.com/docs/edge-case-management.md)
+- [🇬🇧 FAQ in English](https://docs.fipto.com/docs/faq-en.md)
+- [How do I get paid via Payment Links?](https://docs.fipto.com/docs/manage-payment-links-en.md): Payment Links enable you to collect payments in stablecoins and receive the funds converted to euros directly to your Fipto wallet. Fipto will handle the transaction and conversion on your behalf to make it simple and efficient.
+- [How to deposit funds into my Fipto account?](https://docs.fipto.com/docs/how-to-deposit-funds-into-my-fipto-account-en.md)
+- [How to convert fiat and digital currencies?](https://docs.fipto.com/docs/how-to-convert-fiat-and-digital-currencies-en.md): Fipto makes it easy to exchange your money between regular currencies (fiat) and digital currencies. This streamlines your payments and investments operations.
+- [What is the Travel Rule and how does it impact Fipto users?](https://docs.fipto.com/docs/about-travel-rule-en.md)
+- [How to batch multiple payments with Fipto?](https://docs.fipto.com/docs/how-to-batch-multiple-payments-with-fipto-en.md): Batch payments let you process **multiple crypto or fiat transactions at once** by uploading a single payment file via the Fipto platform. This feature is designed to help **finance teams streamline high-volume operations**, such as merchant settlements, disbursements to providers, or payroll.  On this page, we’ll cover everything you need to know to make batch payments with Fipto; from preparing your files to confirming and tracking each transaction.
+- [How to set up a EUR or USD named account?](https://docs.fipto.com/docs/how-to-set-up-a-named-account-en.md): Fipto named accounts let you send and receive payments with your business name appearing as the official source on all transactions. This eliminates verification delays and builds trust with your business partners, while giving you access to both European (SEPA) and global (SWIFT) payment networks from a single platform.
+- [What is Verification of Payee (VoP) ?](https://docs.fipto.com/docs/what-is-verification-of-payee-vop.md)
+- [What is Strong Authentication?](https://docs.fipto.com/docs/what-is-strong-authentication.md): Since January 2018, European regulations have mandated Payment Service Providers to implement Strong Customer Authentication (SCA) to strengthen the security of their customers' accounts and reduce the risk of fraud.
+- [🇫🇷 FAQ en français](https://docs.fipto.com/docs/faq-fr.md)
+- [Comment être payé via un Lien de Paiement ?](https://docs.fipto.com/docs/manage-payment-links-fr.md): Les Liens de Paiement Fipto vous permettent de collecter des paiements en stablecoins et de recevoir les fonds convertis en euros directement sur votre wallet Fipto. Fipto se charge de la transaction et de la conversion pour vous simplifier la vie.
+- [Comment déposer des fonds sur mon compte Fipto ?](https://docs.fipto.com/docs/how-to-deposit-funds-into-my-fipto-account-fr.md)
+- [Comment convertir vos devises fiat et digitales ?](https://docs.fipto.com/docs/how-to-convert-fiat-and-digital-currencies-fr.md): Fipto vous permet de convertir vos devises traditionnelles (fiat) et vos devises digitales, dans un sens ou dans l’autre, afin de simplifier vos opérations de paiement multi-devises ou vos investissements.
+- [Qu'est-ce que la Travel Rule et comment impacte-t-elle les utilisateurs de Fipto ?](https://docs.fipto.com/docs/about-travel-rule-fr.md)
+- [Comment puis-je réaliser plusieurs paiements en un seul batch ?](https://docs.fipto.com/docs/how-to-batch-multiple-payments-with-fipto-fr.md): Les **paiements de masse** vous permettent d’exécuter **plusieurs transactions en crypto ou en fiat en une seule fois**, en important un seul fichier sur la plateforme Fipto. Cette fonctionnalité est conçue pour aider les **équipes financières à simplifier leurs opérations à grande échelle**, comme les règlements marchands, les  paiements à des fournisseurs ou les versements de salaires. Sur cette page, nous vous expliquons tout ce qu’il faut savoir pour utiliser les paiements de masse sur Fipto : de la préparation de votre fichier de paiement jusqu’à la validation de vos transactions.
+- [Comment créer un compte nominatif en EUR ou USD ?](https://docs.fipto.com/docs/how-to-set-up-a-named-account-fr.md): Les comptes nominatifs Fipto vous permettent d'envoyer et de recevoir des paiements avec le nom de votre entreprise affiché comme source pour toutes vos transactions. Cette fonctionnalité facilite la vérification de vos transactions et renforce la confiance de vos partenaires commerciaux. De plus, elle vous donne accès aux réseaux de paiement européens (SEPA) et internationaux (SWIFT) depuis une seule plateforme.
+- [Qu'est-ce que la régulation VoP (Verification of Payee)?](https://docs.fipto.com/docs/quest-ce-que-la-vop-verification-of-payee.md)
+
+## API Reference
+- [Authentication](https://docs.fipto.com/reference/authentication.md)
+- [Supported assets](https://docs.fipto.com/reference/supported-assets-1.md)
+- [Get supported assets](https://docs.fipto.com/reference/listassets.md): Retrieve the list of supported assets of a company.
+- [Request USD onboarding](https://docs.fipto.com/reference/requestusdonboarding.md): Request USD onboarding for a company.
+- [Get transactions](https://docs.fipto.com/reference/searchtransactionsbycompanyid.md): Retrieve the list of all transactions in your company, with the ability to apply filters based on the wallet, transaction type, and pagination.
+- [Get operations](https://docs.fipto.com/reference/listoperationbyoperationids-1.md): Retrieve the list of operations given their operation IDs.
+- [Get a transaction from a company](https://docs.fipto.com/reference/getcompanytransaction-1.md): Retrieve a specific transaction by its unique identifier.
+- [Initiate payout](https://docs.fipto.com/reference/initiatepayout.md): Initiate a payout from your wallet to a specified beneficiary. We will process the payment and send it to the beneficiary.
+- [Create wallet](https://docs.fipto.com/reference/createwalletbycompanyid.md): Create a new wallet for your company.
+- [Get wallets](https://docs.fipto.com/reference/listwallets.md): Retrieve the list of all wallets in your company.
+- [Get a wallet](https://docs.fipto.com/reference/getwallet.md): Retrieve a specific wallet by its unique identifier.
+- [Rename a wallet](https://docs.fipto.com/reference/updatewalletname.md): Update the name of a specific wallet.
+- [Create a wallet details](https://docs.fipto.com/reference/createwalletdetailsbywalletid.md): Create a wallet details for a wallet.
+- [Get wallet details](https://docs.fipto.com/reference/getwalletdetailsbywalletid.md): Retrieve the list of wallet details for a given wallet.
+- [Get a wallet details](https://docs.fipto.com/reference/getwalletdetails.md): Retrieve a specific wallet details information.
+- [Rename a wallet details](https://docs.fipto.com/reference/updatewalletdetails.md): Update the name of a specific wallet details.
+- [Get a wallet details pdf](https://docs.fipto.com/reference/getwalletdetailspdf-1.md): Retrieve a specific wallet details pdf.
+- [Validate a batch of beneficiaries](https://docs.fipto.com/reference/validatebatchbeneficiary.md): Validate a CSV representation of a batch of beneficiaries.
+- [Create a batch of beneficiaries](https://docs.fipto.com/reference/createbatchbeneficiaries.md): Create a batch of beneficiaries for your company. A beneficiary is necessary to initiate a payout.
+- [Create a beneficiary](https://docs.fipto.com/reference/createbeneficiary.md): Create a beneficiary for your company. A beneficiary is necessary to initiate a payout.
+- [Get beneficiaries](https://docs.fipto.com/reference/listbeneficiaries.md): Retrieve all beneficiaries of a company.
+- [Get a beneficiary](https://docs.fipto.com/reference/searchbeneficiaries.md): Retrieve a specific beneficiary by its unique identifier.
+- [Delete a beneficiary](https://docs.fipto.com/reference/deletebeneficiary.md): Delete a specific beneficiary.
+- [Verify a euro beneficiary](https://docs.fipto.com/reference/verifybeneficiary-1.md): Verify a euro beneficiary using the VOP (Verification Of Payee) scheme.
+- [Get companies](https://docs.fipto.com/reference/listcompaniesbyuser.md): Retrieve companies linked to the logged user.
+- [Get a company](https://docs.fipto.com/reference/getcompany.md): Retrieve a specific company linked to the logged user.
+- [Retrieve a specific payment link](https://docs.fipto.com/reference/getpaymentlink.md)
+- [Update a payment link](https://docs.fipto.com/reference/updatepaymentlink.md): Update a payment link as a user.
+- [Retrieve all payment link](https://docs.fipto.com/reference/listpaymentlinks.md)
+- [Create payment link](https://docs.fipto.com/reference/createpaymentlinks.md)
+- [Create a new automated quote](https://docs.fipto.com/reference/createaquote-1.md)
+- [Confirm a quote.](https://docs.fipto.com/reference/confirmquotestatus-1.md)
+- [Get conversion pairs configuration](https://docs.fipto.com/reference/getpairs.md)
+- [Retrieve a list of filterable conversions](https://docs.fipto.com/reference/getconversion-1.md)
+- [List all AISP/PISPs](https://docs.fipto.com/reference/listaisppisp.md)
+- [Create a new API user for an AISP/PISP.](https://docs.fipto.com/reference/createcompanyaisppisp.md)
+- [List all AISP/PISP access of a company](https://docs.fipto.com/reference/listcompanyaisppisp.md)
+- [Get specific AISP/PISP access of a company](https://docs.fipto.com/reference/getcompanyaisppisp.md)
+- [Delete the access for a company to an AISP/PISP.](https://docs.fipto.com/reference/deletecompanyaisppisp.md)
+- [Initiate payout as an AISP/PISP](https://docs.fipto.com/reference/initiatepayoutaisppisp.md): Initiate a payment from your wallet to a specified beneficiary. We will process the payment and send it to the beneficiary.
+- [Get a wallet from an AISP/PISP.](https://docs.fipto.com/reference/getwalletaisppisp.md): Retrieve a specific wallet by its unique identifier from AISP/PISP.
+- [Get transactions for an AISP PISP](https://docs.fipto.com/reference/searchtransactionsaisppispbycompanyid.md): Retrieve the list of all transactions in your company for an AISP PISP, with the ability to apply filters based on the wallet, transaction type, and pagination.
+- [Get a transaction for an AISP PISP](https://docs.fipto.com/reference/gettransactionaisppisp.md): Retrieve a specific transaction by its unique identifier for an AISP PISP.
+- [List beneficiaries for an AISP/PISP](https://docs.fipto.com/reference/listbeneficiariesaisppisp.md): Retrieve all beneficiaries for an AISP/PISP.
+- [Get a beneficiary for an AISP/PISP](https://docs.fipto.com/reference/getbeneficiaryaisppisp.md): Retrieve a specific beneficiary by its unique identifier for an AISP/PISP.
+- [List wallets.](https://docs.fipto.com/reference/listwalletaisppisp.md): Retrieve all wallets linked to a company from a AISP/PISP.
+- [Update the travel rule of a beneficiary](https://docs.fipto.com/reference/updatebeneficiarytravelrule-1.md): Update the travel rule of a beneficiary.
+- [List automation rules](https://docs.fipto.com/reference/listautomations.md): Retrieve the list of automation rules for your company.
+- [Create automation rule](https://docs.fipto.com/reference/createautomation.md): Create a new automation rule for automatic conversions or payouts. Requires 2FA verification.
+- [Get automation rule](https://docs.fipto.com/reference/getautomation.md): Retrieve a specific automation rule by its unique identifier.
+- [Update automation rule](https://docs.fipto.com/reference/updateautomation.md): Update an existing automation rule's configuration.
+- [Delete automation rule](https://docs.fipto.com/reference/deleteautomation.md): Delete an automation rule.
+- [Create an internal transfer](https://docs.fipto.com/reference/createinternaltransfer.md): Initiate an internal transfer between two wallets of the same company.
+- [Simulate a payin](https://docs.fipto.com/reference/simulatepayin.md): Generate a payin on the demo environment. Note that it may take up to 1 minute for the payin to appear in the transactions list. By default, the payin will target the first wallet details created within the wallet.

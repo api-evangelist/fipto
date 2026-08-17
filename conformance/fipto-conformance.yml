@@ -1,0 +1,108 @@
+generated: '2026-08-17'
+method: searched
+source: https://www.fipto.com/company/compliance
+also: https://www.fipto.com/company/security, openapi/fipto-customer-api-openapi.yml
+note: >-
+  Two different things are recorded here and they should not be conflated. Fipto's REGULATORY and
+  CERTIFICATION posture is strong and independently verifiable (MiCA CASP, ACPR Payment Institution,
+  ISO/IEC 27001:2022). Its API-level conformance to cross-cutting web standards is weak — no
+  securitySchemes in the contract, no RFC 9457, no RFC 8594, no OAuth/OIDC, no idempotency.
+standards:
+- id: openapi-3.0
+  conforms: true
+  evidence: Published OpenAPI 3.0.3 document, info.version 4.3.0, 39 paths, 52 operations, 413 schemas.
+- id: oauth2
+  conforms: false
+  evidence: No oauth2 securityScheme; authentication is an RSA HTTP message signature.
+- id: oidc
+  conforms: false
+  evidence: No /.well-known/openid-configuration (404 probed).
+- id: http-message-signatures
+  conforms: partial
+  evidence: >-
+    Implements draft-cavage-http-signatures-12 with algorithm hs2019 — the expired IETF draft, not the
+    published RFC 9421 HTTP Message Signatures. Interoperable with cavage-era libraries only.
+  source: https://docs.fipto.com/docs/api-authentication
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: All error responses are application/json with a JSON:API-like or {data:{message}} envelope;
+    no application/problem+json anywhere in the contract.
+- id: json-api
+  conforms: partial
+  evidence: >-
+    Uses the JSON:API data/type/attributes request-response envelope and a source.pointer error object,
+    but serves application/json rather than application/vnd.api+json and claims no conformance.
+- id: rfc8594-sunset
+  conforms: false
+  evidence: No Sunset or Deprecation header documented; no deprecation policy published.
+- id: rfc9116-security-txt
+  conforms: false
+  evidence: /.well-known/security.txt returns 404 on every Fipto host probed.
+- id: idempotency-key
+  conforms: false
+  evidence: No idempotency key header or field on any write operation.
+- id: pagination
+  conforms: true
+  evidence: Consistent page_number/page_size/sort query parameters with meta.total_results on every
+    collection response.
+- id: psd2
+  conforms: true
+  evidence: >-
+    Fipto PI SAS is licensed as a Payment Institution by the ACPR (code 17908) and exposes a dedicated
+    AISP/PISP delegated-access surface (12 operations under /aisp-pisp/) for third-party providers.
+- id: mica
+  conforms: true
+  evidence: Licensed as a Crypto-Assets Services Provider (CASP) under authorisation A2026-009 by the
+    AMF. Described by Fipto as Europe's first dual-licensed (PI + MiCA CASP) stablecoin payment provider.
+- id: fatf-travel-rule
+  conforms: true
+  evidence: >-
+    Travel Rule is a first-class part of the contract — beneficiary Travel Rule status
+    (completed/incomplete), an updateBeneficiaryTravelRule operation, and a payin status
+    "waiting for travel rule information".
+  docs: https://docs.fipto.com/docs/about-travel-rule-en
+- id: eu-vop-verification-of-payee
+  conforms: true
+  evidence: >-
+    verifyBeneficiary implements the SEPA Verification of Payee scheme, returning VOP result codes
+    (MTCH and siblings) as defined in the VOP specification.
+  docs: https://docs.fipto.com/docs/what-is-verification-of-payee-vop
+- id: psd2-sca
+  conforms: true
+  evidence: Strong Customer Authentication documented; createAutomation requires 2FA verification.
+  docs: https://docs.fipto.com/docs/what-is-strong-authentication
+- id: iso-27001
+  conforms: true
+  evidence: ISO/IEC 27001:2022 certified for its information security management system.
+  source: https://www.fipto.com/company/security
+- id: gdpr
+  conforms: true
+  evidence: GDPR-aligned data deletion policies stated on the security page; privacy policy published.
+- id: aml-cft
+  conforms: true
+  evidence: Mandatory KYC/KYB onboarding for AML/CFT and sanctions compliance.
+- id: soc2
+  conforms: false
+  evidence: Not claimed anywhere on the compliance or security pages.
+- id: pci-dss
+  conforms: false
+  evidence: Not claimed; Fipto is not a card acquirer.
+certifications:
+- {name: 'ISO/IEC 27001:2022', scope: information security management system,
+   source: 'https://www.fipto.com/company/security'}
+licences:
+- {name: Payment Institution, authority: ACPR (Banque de France), identifier: 'CIB 17908',
+   entity: Fipto PI SAS, source: 'https://www.fipto.com/company/compliance'}
+- {name: 'Crypto-Asset Service Provider (MiCA CASP)', authority: AMF (France),
+   identifier: A2026-009, entity: Fipto PI SAS,
+   source: 'https://www.fipto.com/company/compliance'}
+- {name: VASP registration, authority: Luxembourg, identifier: null,
+   source: 'https://www.fipto.com/articles/fipto-acquires-luxembourg-vasp-registration'}
+data_quality_note: >-
+  The compliance page body states the CASP authorisation number as A2025-009 while the same page's
+  footer and the security page both state A2026-009. Recorded as A2026-009 (the value carried in the
+  legal footer of every page); the discrepancy is Fipto's to resolve.
+entity:
+  legal_name: Fipto PI SAS
+  jurisdiction: France
+  company_number: '929 508 893'

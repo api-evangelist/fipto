@@ -1,0 +1,71 @@
+generated: '2026-08-17'
+method: searched
+status: published
+source: https://github.com/fipto/mcp-fipto
+docs: https://www.fipto.com/mcp
+deployment:
+  mode: local-stdio
+  endpoint: null
+  install: npx -y @fipto/mcp-fipto
+  package: https://www.npmjs.com/package/@fipto/mcp-fipto
+  auth: api-key
+  verified: searched
+  note: >-
+    Fipto ships NO hosted/remote MCP endpoint. The server is a local stdio process an operator installs
+    and runs themselves; an agent cannot reach Fipto over MCP without a human first configuring the
+    command with a USER_ID and a PRIVATE_KEY. The README's own VS Code example uses
+    command "npx", args ["-y","@fipto/mcp-fipto"], StdioServerTransport.
+server:
+  name: fipto
+  transport: stdio
+  url: null
+  repository: https://github.com/fipto/mcp-fipto
+  package: "@fipto/mcp-fipto"
+  version: 1.0.3
+  published: '2025-06-10'
+  runtime: Node.js >= 16 (ESM, top-level await)
+  entrypoint: node dist/index.js
+configuration:
+- name: BASE_URL
+  description: Base URL of the Fipto API (https://api.fipto.app for production, https://api.demo.fipto.tech for demo)
+  required: true
+- name: USER_ID
+  description: UUID of the Fipto API user; used as the HTTP-signature keyId
+  required: true
+- name: PRIVATE_KEY
+  description: PEM RSA private key matching the public key registered with Fipto; signs every request
+  required: true
+tools:
+- name: list_my_companies
+  description: Lists all companies the current user is a member of at Fipto.
+  parameters: []
+  source_operation: openapi/fipto-customer-api-openapi.yml#listCompaniesByUser
+- name: list_company_wallets
+  description: Lists all wallets for a specific company at Fipto.
+  parameters:
+  - {name: company_id, type: string, format: uuid, required: true}
+  source_operation: openapi/fipto-customer-api-openapi.yml#listWallets
+- name: list_company_transactions
+  description: Lists all transactions for a specific company at Fipto, with filters.
+  parameters:
+  - {name: company_id, type: string, format: uuid, required: true}
+  - {name: transaction_types, type: array, required: false}
+  - {name: asset_types, type: array, required: false}
+  - {name: page_number, type: number, required: false}
+  - {name: page_size, type: number, required: false}
+  - {name: sort, type: string, required: false}
+  - {name: wallet_id, type: string, format: uuid, required: false}
+  - {name: statuses, type: array, required: false}
+  - {name: can_be_signed_by, type: string, format: uuid, required: false}
+  source_operation: openapi/fipto-customer-api-openapi.yml#searchTransactionsByCompanyId
+tool_count: 3
+introspection:
+  tools_list_probed: false
+  reason: >-
+    tools/list could not be probed. The server is stdio-only — there is no HTTP endpoint to POST a
+    JSON-RPC request to — and running it locally requires Fipto-issued credentials. The tool list above
+    is transcribed from the provider's own README, which documents each tool's parameters explicitly.
+roadmap:
+  source: https://www.fipto.com/mcp
+  phase_1: 'Live: read-only — list companies and wallets, transaction history, currency positions and flows.'
+  phase_2: 'Coming soon: write — create beneficiaries, initiate payments, end-to-end workflow orchestration.'

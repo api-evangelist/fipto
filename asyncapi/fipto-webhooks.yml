@@ -1,0 +1,93 @@
+generated: '2026-08-17'
+method: searched
+source: https://docs.fipto.com/docs/webhooks
+spec_type: none
+note: >-
+  Fipto publishes NO AsyncAPI document. It does publish a complete, well-specified webhook contract —
+  event catalog, payload field tables, signature verification with per-environment public keys, an IP
+  allowlist, an exact retry schedule and an explicit de-duplication rule. That surface is captured here
+  and wired as `type: Webhooks`. No AsyncAPI pointer is emitted, because none exists and fabricating
+  one would misrepresent what Fipto ships.
+delivery:
+  transport: https-webhook
+  method: POST
+  content_type: application/json
+  configuration: >-
+    Not self-serve. A customer prepares an HTTPS endpoint and contacts Fipto customer support to have
+    the webhook registered. There is no webhook-management API operation in the published OpenAPI.
+  requirement: The receiving endpoint must use HTTPS.
+security:
+  signature_header: Fipto-Signature
+  algorithm: Base64(RSASSA-PKCS1-v1_5(webhook private key, SHA-512, SHA-512(eventBody)))
+  verification: RSA-SHA512 verify against Fipto's published per-environment public key
+  public_keys_published: true
+  public_keys_location: https://docs.fipto.com/docs/webhooks
+  ip_allowlist:
+    demo: [3.77.91.94, 3.73.145.20, 3.120.72.252]
+    production: [3.77.126.242, 52.29.119.142, 3.120.13.37]
+reliability:
+  expected_response: any 2XX
+  timeout_seconds: 5
+  retries_max: 10
+  backoff: exponential
+  retry_schedule_seconds: [2, 4, 8, 16, 32, 64, 128, 256, 512, 900]
+  total_window: approximately 32 minutes after the first failure
+  duplicate_delivery: possible
+  deduplication_key: event_id
+  deduplication_note: Consumers are instructed to ignore events whose event_id was already processed.
+payload:
+  envelope:
+    event: string — the event type
+    event_id: uuid — de-duplication key
+    data.id: uuid
+    data.type: 'payin | payout'
+    data.attributes: object — type-specific
+events:
+- name: PAYIN_CREATED
+  data_type: payin
+  description: A payin has been created against a company wallet.
+- name: PAYIN_COMPLETED
+  data_type: payin
+  description: A payin has settled.
+- name: PAYIN_REJECTED
+  data_type: payin
+  description: A payin was rejected.
+- name: PAYOUT_COMPLETED
+  data_type: payout
+  description: A payout has settled.
+- name: PAYOUT_REJECTED
+  data_type: payout
+  description: A payout was rejected.
+- name: PAYMENT_LINK_COMPLETED
+  data_type: payment link
+  description: A payment link has been paid.
+event_count: 6
+payload_fields:
+  payin:
+  - amount
+  - asset_code
+  - created_at
+  - source.address
+  - source.iban
+  - source.bic
+  - source.name
+  - source.physical_address
+  - source.country
+  - destination.wallet_id
+  - destination.wallet_name
+  - destination.wallet_details_name
+  - destination.wallet_details_address
+  - destination.wallet_details_tag
+  - destination.wallet_details_iban
+  - reference
+  - status
+  - transaction_id
+  - valuations[].asset
+  - valuations[].value
+  - blockchain_data.transaction_hash
+  - blockchain_data.block_explorer_link
+gaps:
+- No AsyncAPI or machine-readable event schema is published; the payload contract is a markdown table.
+- Webhook endpoints cannot be registered, listed or rotated through the API — it is a support ticket.
+- Events cover payin, payout and payment link only. Conversions, quotes, beneficiary verification and
+  automation-rule executions raise no webhook, so those must be polled.

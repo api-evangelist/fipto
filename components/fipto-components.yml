@@ -1,0 +1,41 @@
+generated: '2026-08-17'
+method: searched
+source: https://docs.fipto.com/docs/build-a-checkout-for-stablecoin-payments
+also: https://www.fipto.com/fipto-embedded
+note: >-
+  Fipto ships NO client-side component library — no web components, no JS element library, no
+  embeddable widget script, no npm UI package. What it does ship is a HOSTED prebaked payer surface
+  (Payment Links) that is created through the API and rendered by Fipto, plus a white-label embedded
+  offering. Both are captured here because they are the surfaces a customer puts in front of an end
+  user, but neither is a loadable component and no loader library exists.
+families:
+- family: Payment Links
+  kind: hosted-page
+  description: >-
+    A Fipto-hosted checkout page for collecting stablecoin payments. Created via the API, then sent to
+    or embedded as a redirect for the payer. Fipto handles the payer flow and converts the received
+    stablecoin to EUR into the merchant's Fipto wallet.
+  integration: redirect / share a URL
+  loader_library: null
+  created_by:
+    operations: [createPaymentLinks, getPaymentLink, listPaymentLinks, updatePaymentLink]
+    spec: openapi/fipto-customer-api-openapi.yml
+  statuses: [pending, completed, underpaid, overpaid]
+  docs:
+  - https://docs.fipto.com/docs/build-a-checkout-for-stablecoin-payments
+  - https://docs.fipto.com/docs/understanding-the-payment-links-flow
+  - https://docs.fipto.com/docs/create-a-payment-link
+  - https://docs.fipto.com/docs/send-or-redirect-to-the-payment-link
+  - https://docs.fipto.com/docs/edge-case-management
+- family: Fipto Embedded
+  kind: white-label
+  description: >-
+    "Your brand, our licence" — a grey-label / embedded offering letting a partner present Fipto's
+    regulated payment rails under their own brand. Commercial and contractual; no public technical
+    component documentation is published.
+  integration: contact sales
+  loader_library: null
+  url: https://www.fipto.com/fipto-embedded
+  public_technical_docs: false
+component_libraries: []
+loader_libraries: []

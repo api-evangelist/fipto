@@ -1,0 +1,46 @@
+generated: '2026-08-17'
+method: searched
+source: registry.npmjs.org, pypi.org, docs.fipto.com
+note: >-
+  Fipto publishes NO first-party client SDK in any language. The only first-party package on any
+  registry is the MCP server. The documented integration paths are raw HTTP with a hand-built
+  HTTP-signature header, the public Postman collection (whose pre-request script does the signing),
+  or the MCP server. No `SDKs` pointer is emitted in apis.yml because an MCP server is not a client
+  library and asserting otherwise would credit Fipto with SDKs it does not ship.
+packages:
+- language: javascript
+  registry: npm
+  name: "@fipto/mcp-fipto"
+  url: https://www.npmjs.com/package/@fipto/mcp-fipto
+  install: npx -y @fipto/mcp-fipto
+  official: true
+  kind: mcp-server
+  version: 1.0.3
+  published: '2025-06-10'
+  versions_published: 4
+  source_code: https://github.com/fipto/mcp-fipto
+  description: Model Context Protocol server for the Fipto API; stdio transport, three read-only tools.
+  note: >-
+    Latest release 1.0.3 (2025-06-10) is over 14 months older than the currently published API contract
+    (OpenAPI info.version 4.3.0, reference pages updated 2026-07-13). The server exposes 3 tools
+    against 52 published operations, and Fipto's own MCP page still lists write capability as
+    "coming soon" — so the staleness is consistent with the documented roadmap rather than abandonment,
+    but the package has not tracked the API.
+registries_checked:
+- {registry: npm, query: "fipto", result: "1 package (@fipto/mcp-fipto)"}
+- {registry: pypi, query: "fipto / fipto-sdk", result: "404 — no package"}
+- {registry: pypi, query: "fipto", result: "404 — no package"}
+non_registry_distribution:
+- kind: postman-collection
+  name: Fipto API — Demo environment
+  url: https://www.postman.com/galactic-meadow-917828/workspace/fipto-api-demo-environment/collection/24959087-42b9da95-ca00-4b9a-89cc-52d84d432d5f
+  official: true
+  version: null
+  published: null
+  note: >-
+    Public forkable Postman collection plus a boilerplate environment. Postman collections carry no
+    registry metadata endpoint, so no version or publish date can be read; a consumer forking it
+    cannot tell which API version it targets either.
+  docs: https://docs.fipto.com/docs/postman-guide
+official_count: 1
+sdk_count: 0

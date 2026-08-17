@@ -1,0 +1,56 @@
+generated: '2026-08-17'
+method: searched
+source: https://docs.fipto.com/reference/getting-started
+versioning:
+  scheme: none
+  current: 4.3.0
+  location: OpenAPI info.version
+  url_versioned: false
+  header_versioned: false
+  docs: null
+  note: >-
+    The contract carries a semantic version (4.3.0) but the runtime API does not expose it. Paths begin
+    at /companies with no /v1 segment, and no version header or query parameter is documented. A client
+    cannot pin a version, and cannot detect that one changed.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  deprecation_header: false
+  deprecated_operations: []
+  note: >-
+    No deprecation policy is published, RFC 8594 Sunset/Deprecation headers are not documented, and
+    NOT ONE of the 52 published operations carries `deprecated: true`. No `Deprecation` pointer is
+    emitted in apis.yml.
+change_log:
+  url: null
+  note: >-
+    No changelog exists. docs.fipto.com/changelog returns 404 and the ReadMe project publishes no
+    changelog section. The only dated signal available to a consumer is the `updatedAt` timestamp on
+    each documentation page (the API reference pages were last updated 2026-07-13). Product
+    announcements appear on the company blog, not in a developer changelog. No `ChangeLog` pointer is
+    emitted.
+  evidence:
+  - {url: 'https://docs.fipto.com/changelog', status: 404}
+status_page:
+  url: https://status.fipto.com/
+  provider: Better Stack
+  title: Fipto status
+  verified: true
+  http_status: 200
+  linked_from: https://www.fipto.com/ (footer, "API Status")
+sla:
+  url: null
+  uptime_target: null
+  note: No public SLA or uptime commitment is published.
+environments:
+- name: demo
+  api_host: https://api.demo.fipto.tech
+  platform: https://demo.fipto.tech
+  access: on request via https://www.fipto.com/demo
+- name: production
+  api_host: https://api.fipto.app
+  platform: https://fipto.app/
+  access: after KYB verification
+support:
+  contact: https://www.fipto.com/contact
+  developer_support: documented as available for API integration projects

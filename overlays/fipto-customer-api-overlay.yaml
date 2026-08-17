@@ -1,0 +1,73 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Fipto API
+  version: 1.0.0
+extends: openapi/fipto-customer-api-openapi.yml
+x-provenance:
+  generated: '2026-08-17'
+  method: generated
+  source: openapi/fipto-customer-api-openapi.yml
+  note: >-
+    Non-destructive enhancements to the harvested Fipto contract. The original is preserved verbatim at
+    openapi/_original/fipto-customer-api-openapi.json. The single most consequential gap this overlay
+    closes is the missing securitySchemes block — the published spec declares no authentication at all,
+    while every operation requires an RSA HTTP message signature. The scheme added here is transcribed
+    from Fipto's own authentication guide, not invented.
+actions:
+- target: $.info
+  update:
+    x-apievangelist-profile: https://apis.io/provider/fipto
+    x-apievangelist-reviewed: '2026-08-17'
+    x-contract-source: https://docs.fipto.com/reference/getting-started
+    x-auth-not-declared-in-spec: true
+- target: $.servers
+  update:
+  - url: https://api.fipto.app
+    description: The API server on production
+  - url: https://api.demo.fipto.tech
+    description: The API server on the demo environment (documented at
+      https://docs.fipto.com/docs/api-authentication but absent from the published servers block)
+- target: $.components
+  update:
+    securitySchemes:
+      httpSignature:
+        type: http
+        scheme: signature
+        description: >-
+          RSA HTTP message signature per draft-cavage-http-signatures-12. The Signature header carries
+          keyId (the UUID of your Fipto API user), algorithm "hs2019", and a signature over
+          (request-target), host, date, and — on bodied requests — content-type and digest. See
+          https://docs.fipto.com/docs/api-authentication. NOT declared in the provider's own spec;
+          added by API Evangelist so the contract is self-describing.
+        x-added-by: api-evangelist
+        x-source: https://docs.fipto.com/docs/api-authentication
+- target: $
+  update:
+    security:
+    - httpSignature: []
+    x-webhooks-documented: https://docs.fipto.com/docs/webhooks
+    x-mcp-server: https://github.com/fipto/mcp-fipto
+- target: $.paths['/companies/{company_id}/wallets/{wallet_id}/payin-simulation'].post
+  update:
+    x-environment: demo-only
+    x-sandbox: true
+    description: >-
+      Generate a payin on the demo environment. Note that it may take up to 1 minute for the payin to
+      appear in the transactions list. By default, the payin will target the first wallet details
+      created within the wallet. This operation exists only on https://api.demo.fipto.tech.
+- target: $.paths['/companies/{company_id}/wallets/{wallet_id}/payouts'].post
+  update:
+    x-idempotent: false
+    x-agent-note: >-
+      No idempotency key is accepted. A retried payout may duplicate. A 2xx does not mean settled —
+      poll the transaction status, which can be "awaiting co-signer" or "awaiting approval".
+- target: $.paths['/companies/{company_id}/wallets/{wallet_id}/internal-transfers'].post
+  update:
+    x-idempotent: false
+    x-agent-note: No idempotency key is accepted. Retry is not safe without first reconciling by
+      searching transactions.
+- target: $.paths['/companies/{company_id}/quotes'].post
+  update:
+    x-agent-note: >-
+      A quote is time-limited. It must be confirmed via confirmQuoteStatus before it executes, and can
+      return "Quote is expired" or "Quote already validated".
