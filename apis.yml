@@ -27,25 +27,236 @@ tags:
 - Fintech
 - Wallets
 apis:
-- aid: fipto:customer-api
-  name: Fipto API
-  description: 'The Fipto REST API (OpenAPI 3.0.3, version 4.3.0) for stablecoin and fiat payments:
-    company assets, multi-asset wallets and wallet details (IBAN/blockchain addresses), beneficiaries
-    with Travel Rule and Verification of Payee support, payouts and internal transfers, transaction and
-    operation search, conversions and quotes, payment links, automation rules, and a delegated AISP/PISP
-    access surface. Requests are authenticated with HTTP Message Signatures (draft-cavage-12) using an
-    RSA key pair issued during onboarding.'
+- aid: fipto:fipto-aisp-pisp-api
+  name: Fipto AISP/PISP API
+  description: Endpoints for AISP/PISP.
   humanURL: https://docs.fipto.com/reference/getting-started
   baseURL: https://api.fipto.app
   tags:
-  - Payments
-  - Stablecoins
-  - Wallets
+  - AISP/PISP
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-aisp-pisp-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-assets-api
+  name: Fipto Assets API
+  description: Retrieve information about assets supported by Fipto.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Assets
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-assets-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-automations-api
+  name: Fipto Automations API
+  description: The Automations API from Fipto — 2 operation(s) for automations.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Automations
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-automations-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-beneficiaries-api
+  name: Fipto Beneficiaries API
+  description: Manage your beneficiaries to whitelist addresses for payout.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
   - Beneficiaries
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-beneficiaries-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-companies-api
+  name: Fipto Companies API
+  description: Manage information and settings of a company.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Companies
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-companies-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-conversions-api
+  name: Fipto Conversions API
+  description: Manage conversions.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
   - Conversions
   properties:
   - type: OpenAPI
-    url: openapi/fipto-customer-api-openapi.yml
+    url: openapi/fipto-conversions-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-internal-transfers-api
+  name: Fipto Internal Transfers API
+  description: The Internal Transfers API from Fipto — 1 operation(s) for internal transfers.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Internal Transfers
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-internal-transfers-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-payin-simulation-api
+  name: Fipto Payin Simulation API
+  description: The Payin Simulation API from Fipto — 1 operation(s) for payin simulation.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Payin Simulation
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-payin-simulation-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-payment-links-api
+  name: Fipto Payment links API
+  description: Manage payment links.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Payment links
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-payment-links-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-transactions-api
+  name: Fipto Transactions API
+  description: Initiate payout and retrieve information about ongoing and completed transactions.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Transactions
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-transactions-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-travel-rule-api
+  name: Fipto Travel Rule API
+  description: The Travel Rule API from Fipto — 1 operation(s) for travel rule.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Travel Rule
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-travel-rule-api-openapi.yml
+  - type: Documentation
+    url: https://docs.fipto.com/
+  - type: APIReference
+    url: https://docs.fipto.com/reference/getting-started
+  - type: Authentication
+    url: authentication/fipto-authentication.yml
+  - type: Webhooks
+    url: asyncapi/fipto-webhooks.yml
+  - type: ToolCrosswalk
+    url: mcp/fipto-tool-crosswalk.yml
+- aid: fipto:fipto-wallets-api
+  name: Fipto Wallets API
+  description: Manage wallets and their related wallet details.
+  humanURL: https://docs.fipto.com/reference/getting-started
+  baseURL: https://api.fipto.app
+  tags:
+  - Wallets
+  properties:
+  - type: OpenAPI
+    url: openapi/fipto-wallets-api-openapi.yml
   - type: Documentation
     url: https://docs.fipto.com/
   - type: APIReference
