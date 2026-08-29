@@ -285,6 +285,9 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: CapabilityMap
+  url: capabilities/fipto-capability-edges.yml
+  name: Fipto Business Capability Map
 - type: AgenticAccess
   url: agentic-access/fipto-agentic-access.yml
 - type: Website
