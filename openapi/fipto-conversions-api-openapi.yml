@@ -1,0 +1,619 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Conversions API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Conversions
+  description: Manage conversions.
+paths:
+  /companies/{company_id}/quotes:
+    post:
+      summary: Create a new automated quote
+      operationId: createAQuote
+      tags:
+      - Conversions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  oneOf:
+                  - $ref: '#/components/schemas/quote_buy_sided'
+                  - $ref: '#/components/schemas/quote_sell_sided'
+      responses:
+        '201':
+          description: Quote successfully created
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      allOf:
+                      - $ref: '#/components/schemas/quote_buy_sided'
+                      - $ref: '#/components/schemas/quote_sell_sided'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: '^Manual flow required: company trading limits hit\.$'
+                        - pattern: '^Manual flow required: amount is below the minimum eur trading volume: \d{1,}\.$'
+                        - pattern: '^Manual flow required: amount is above the maximum eur trading volume: \d{1,}\.$'
+                        - pattern: '^Manual flow required: pair is forbidden'
+                        - pattern: ^Manual flow required\.$
+                        - pattern: ^Asset codes of buy and sell wallets must be different\.$
+                        - pattern: ^Wallets not found\.$
+                        - pattern: ^Buy wallet not found\.$
+                        - pattern: ^Sell wallet not found\.$
+                        - pattern: ^Sell amount must have \d{1,} decimals\.$
+  /companies/{company_id}/quotes/{quote_id}/status:
+    patch:
+      summary: Confirm a quote.
+      operationId: confirmQuoteStatus
+      tags:
+      - Conversions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/quote_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/quote_status_confirmed_data'
+      responses:
+        '200':
+          description: Quote successfully updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/quote_status_confirmed_data'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: '^Manual flow required: company trading limits hit\.$'
+                        - pattern: ^Asset codes of buy and sell wallets must be different\.$
+                        - pattern: ^Quote is expired\.$
+                        - pattern: ^Quote not found\.$
+                        - pattern: ^Quote is not in submitted status\.$
+                        - pattern: ^Insufficient funds\.$
+                        - pattern: ^Quote already validated\.$
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Quote not found\.$
+  /companies/{company_id}/pairs:
+    get:
+      summary: Get conversion pairs configuration
+      operationId: getPairs
+      tags:
+      - Conversions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      responses:
+        '200':
+          description: Pairs list
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - sell_asset_code
+                        - buy_asset_code
+                        - eotc_available
+                        properties:
+                          sell_asset_code:
+                            description: The asset code being sold in this conversion pair.
+                            allOf:
+                            - $ref: '#/components/schemas/asset'
+                          buy_asset_code:
+                            description: The asset code being bought in this conversion pair.
+                            allOf:
+                            - $ref: '#/components/schemas/asset'
+                          eotc_available:
+                            description: Whether electronic over-the-counter (EOTC) trading is available for this pair.
+                            type: boolean
+                          min_trading_volume_eur:
+                            description: The minimum trading volume in EUR required for EOTC conversions on this pair.
+                            allOf:
+                            - $ref: '#/components/schemas/positive_amount'
+  /companies/{company_id}/conversions/{conversion_id}:
+    get:
+      summary: Retrieve a list of filterable conversions
+      operationId: getConversion
+      tags:
+      - Conversions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/conversion_id'
+      responses:
+        '200':
+          description: A conversion.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/public_conversion_data'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        enum:
+                        - Conversion not found.
+components:
+  schemas:
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    conversion_data:
+      description: Conversion data without id.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            $ref: '#/components/schemas/uuid'
+          type:
+            type: string
+            enum:
+            - conversion
+          attributes:
+            required:
+            - sell_wallet_id
+            - sell_wallet_name
+            - sell_asset_code
+            - sell_amount
+            - buy_wallet_id
+            - buy_wallet_name
+            - buy_asset_code
+            - buy_amount
+            - requested_by
+            - requested_by_user_name
+            - transaction_id
+            - created_at
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_name:
+                $ref: '#/components/schemas/sanitized_string'
+              sell_asset_code:
+                $ref: '#/components/schemas/asset'
+              sell_amount:
+                $ref: '#/components/schemas/positive_amount'
+              buy_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              buy_wallet_name:
+                $ref: '#/components/schemas/sanitized_string'
+              buy_asset_code:
+                $ref: '#/components/schemas/asset'
+              buy_amount:
+                $ref: '#/components/schemas/positive_amount'
+              requested_by:
+                $ref: '#/components/schemas/uuid'
+              requested_by_user_name:
+                $ref: '#/components/schemas/sanitized_string'
+              dealt_by:
+                $ref: '#/components/schemas/uuid'
+              dealt_by_employee_email:
+                $ref: '#/components/schemas/employee_email'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              fee_percentage:
+                $ref: '#/components/schemas/positive_amount'
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    quote_sell_sided:
+      description: Quote information
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - type: object
+        required:
+        - attributes
+        - type
+        properties:
+          type:
+            type: string
+            enum:
+            - quote
+          attributes:
+            type: object
+            required:
+            - price
+            - partner_price
+            - status
+            - expiration_time
+            - buy_wallet_id
+            - sell_wallet_id
+            - sell_amount
+            - buy_amount
+            - buy_asset_code
+            - sell_asset_code
+            - price_base_asset_code
+            - price_quote_asset_code
+            - fee_percentage
+            properties:
+              expiration_time:
+                description: The expiration time of the quote.
+                readOnly: true
+                type: string
+                format: date-time
+              price:
+                readOnly: true
+                description: The price of the quote.
+                allOf:
+                - $ref: '#/components/schemas/strictly_positive_amount'
+              status:
+                readOnly: true
+                description: The status of the quote.
+                allOf:
+                - $ref: '#/components/schemas/quote_status'
+              partner_price:
+                readOnly: true
+                description: The price of the quote for the partner.
+                allOf:
+                - $ref: '#/components/schemas/strictly_positive_amount'
+              sell_amount:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/strictly_positive_amount'
+              buy_amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              buy_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              buy_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              sell_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              price_base_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              price_quote_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              fee_percentage:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/positive_amount'
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    object_id:
+      description: Unique id of object
+      type: object
+      properties:
+        id:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    employee_email:
+      type: string
+      format: email
+      pattern: '@fipto\.com$'
+      example: employee@fipto.com
+      description: Email of the employee.
+    quote_status:
+      description: Quote status
+      type: string
+      enum:
+      - submitted
+      - pending
+      - confirmed
+    quote_buy_sided:
+      description: Quote information
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - type: object
+        required:
+        - attributes
+        - type
+        properties:
+          type:
+            type: string
+            enum:
+            - quote
+          attributes:
+            type: object
+            required:
+            - price
+            - partner_price
+            - status
+            - expiration_time
+            - buy_wallet_id
+            - sell_wallet_id
+            - buy_amount
+            - sell_amount
+            - buy_asset_code
+            - sell_asset_code
+            - price_base_asset_code
+            - price_quote_asset_code
+            - fee_percentage
+            properties:
+              expiration_time:
+                description: The expiration time of the quote.
+                readOnly: true
+                type: string
+                format: date-time
+              price:
+                readOnly: true
+                description: The price of the quote.
+                allOf:
+                - $ref: '#/components/schemas/strictly_positive_amount'
+              status:
+                readOnly: true
+                description: The status of the quote.
+                allOf:
+                - $ref: '#/components/schemas/quote_status'
+              partner_price:
+                readOnly: true
+                description: The price of the quote for the partner.
+                allOf:
+                - $ref: '#/components/schemas/positive_amount'
+              buy_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              buy_amount:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/strictly_positive_amount'
+              sell_amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              buy_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              sell_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              price_base_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              price_quote_asset_code:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/asset'
+              fee_percentage:
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/positive_amount'
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    strictly_positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$
+    public_conversion_data:
+      description: Public conversion data.
+      allOf:
+      - $ref: '#/components/schemas/conversion_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/transaction_conversion_status_public'
+    created_at:
+      type: string
+      format: date-time
+      description: The specific date on which the transaction has been created.
+    transaction_conversion_status_public:
+      type: string
+      enum:
+      - confirmed
+      - completed
+      - returned
+      - insufficient funds
+      example: confirmed
+      description: Status of the conversion transaction.
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    quote_status_confirmed_data:
+      description: Quote status data
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - type: object
+        required:
+        - attributes
+        - type
+        properties:
+          type:
+            type: string
+            enum:
+            - quote_status
+          attributes:
+            type: object
+            required:
+            - status
+            - transaction_id
+            properties:
+              transaction_id:
+                description: The transaction id of the conversion
+                readOnly: true
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+              status:
+                description: The status of the quote.
+                enum:
+                - validated
+    positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^\d+(\.\d+)?$
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    quote_id:
+      name: quote_id
+      in: path
+      required: true
+      description: The quote identifier given by Fipto.
+      example: 9b7029b5-fd51-4383-9881-3c9f549b30be
+      schema:
+        type: string
+    conversion_id:
+      name: conversion_id
+      in: path
+      required: true
+      description: A conversion ID identifier.
+      example: eb8bea14-8505-46d4-857e-e3749d5ca943
+      schema:
+        $ref: '#/components/schemas/uuid'
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"

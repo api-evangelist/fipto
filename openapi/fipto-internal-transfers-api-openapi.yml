@@ -1,0 +1,219 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Internal Transfers API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Internal Transfers
+paths:
+  /companies/{company_id}/wallets/{wallet_id}/internal-transfers:
+    post:
+      summary: Create an internal transfer
+      description: Initiate an internal transfer between two wallets of the same company.
+      operationId: createInternalTransfer
+      tags:
+      - Internal Transfers
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/internal_transfer_initiate_raw_data'
+            examples:
+              Fiat:
+                value:
+                  data:
+                    type: internal_transfer
+                    attributes:
+                      amount: '100'
+                      destination_wallet_id: ffb2d381-9399-4463-b7df-343c539e5367
+                      reference: my transfer
+      responses:
+        '202':
+          description: Internal transfer accepted.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/internal_transfer_data'
+components:
+  schemas:
+    fiat_reference:
+      type: string
+      pattern: ^[a-zA-Z0-9-.&/\s]*$
+      minLength: 6
+      maxLength: 35
+      description: Payment reference used in fiat transactions to convey information about the payment being made. Allow alphanumeric, -, ., &, /, space and all accented characters. The minimum length must be 6 characters without counting the spaces.
+    created_by:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: The id of the user that initiated the payout.
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    internal_transfer_data:
+      description: Internal transfer data (same-client wallet-to-wallet).
+      type: object
+      required:
+      - type
+      - id
+      properties:
+        type:
+          type: string
+          enum:
+          - internal_transfer
+        id:
+          $ref: '#/components/schemas/uuid'
+        attributes:
+          properties:
+            asset_code:
+              $ref: '#/components/schemas/asset'
+            amount:
+              $ref: '#/components/schemas/positive_amount'
+            source_company_name:
+              type: string
+            source_wallet_id:
+              $ref: '#/components/schemas/uuid'
+            source_wallet_name:
+              type: string
+            destination_wallet_id:
+              $ref: '#/components/schemas/uuid'
+            destination_wallet_name:
+              type: string
+            destination_company_name:
+              type: string
+            status:
+              type: string
+            transaction_id:
+              $ref: '#/components/schemas/uuid'
+            created_at:
+              $ref: '#/components/schemas/created_at'
+            created_by:
+              $ref: '#/components/schemas/created_by'
+            reference:
+              $ref: '#/components/schemas/fiat_reference'
+            signatures:
+              type: object
+              properties:
+                quorum:
+                  type: integer
+                signatories:
+                  type: array
+                  items:
+                    type: object
+    positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^\d+(\.\d+)?$
+    created_at:
+      type: string
+      format: date-time
+      description: The specific date on which the transaction has been created.
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    internal_transfer_initiate_raw_data:
+      description: Internal transfer data to initiate a wallet-to-wallet transfer.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - internal_transfer
+          attributes:
+            type: object
+            required:
+            - destination_wallet_id
+            - amount
+            properties:
+              destination_wallet_id:
+                description: ID of the destination wallet for the internal transfer. Must belong to the same company and same currency as the source wallet.
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+              amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    strictly_positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    wallet_id:
+      name: wallet_id
+      in: path
+      required: true
+      description: The Wallet ID given by Fipto.
+      example: 03a596dd-8b4e-4bb5-a8b9-3a7ddb8ad960
+      schema:
+        $ref: '#/components/schemas/uuid'
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"

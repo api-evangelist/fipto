@@ -1,0 +1,1184 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Transactions API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Transactions
+  description: Initiate payout and retrieve information about ongoing and completed transactions.
+paths:
+  /companies/{company_id}/transactions:
+    get:
+      summary: Get transactions
+      description: Retrieve the list of all transactions in your company, with the ability to apply filters based on the wallet, transaction type, and pagination.
+      operationId: searchTransactionsByCompanyId
+      tags:
+      - Transactions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/page_number'
+      - $ref: '#/components/parameters/page_size'
+      - name: sort
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/sort_transaction_list'
+      - $ref: '#/components/parameters/filter_transaction_types'
+      - $ref: '#/components/parameters/filter_asset_types'
+      - $ref: '#/components/parameters/filter_wallet_id'
+      - $ref: '#/components/parameters/filter_public_transaction_status'
+      - $ref: '#/components/parameters/filter_can_be_signed_by'
+      - $ref: '#/components/parameters/filters_date_from'
+      - $ref: '#/components/parameters/filters_date_to'
+      responses:
+        '200':
+          description: Retrieve list of transactions.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/pagination'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/transaction_data'
+  /companies/{company_id}/operations:
+    get:
+      summary: Get operations
+      description: Retrieve the list of operations given their operation IDs.
+      operationId: listOperationByOperationIds
+      tags:
+      - Transactions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/filter_operation_id'
+      - $ref: '#/components/parameters/page_number'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: Retrieve list of operations.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/pagination'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/operation_data'
+  /companies/{company_id}/transactions/{transaction_id}:
+    get:
+      summary: Get a transaction from a company
+      description: Retrieve a specific transaction by its unique identifier.
+      operationId: getCompanyTransaction
+      tags:
+      - Transactions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/transaction_id'
+      responses:
+        '200':
+          description: Retrieve a transaction.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/transaction_data'
+  /companies/{company_id}/wallets/{wallet_id}/payouts:
+    post:
+      summary: Initiate payout
+      description: Initiate a payout from your wallet to a specified beneficiary. We will process the payment and send it to the beneficiary.
+      operationId: initiatePayout
+      tags:
+      - Transactions
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/payout_initiate_raw_data'
+            examples:
+              Digital:
+                value:
+                  data:
+                    type: payout
+                    attributes:
+                      amount: '0.4'
+                      beneficiary_id: 5225b609-89e2-46a1-8243-83db0304a469
+              Fiat:
+                value:
+                  data:
+                    type: payout
+                    attributes:
+                      amount: '100'
+                      reference: my payout
+                      beneficiary_id: ffb2d381-9399-4463-b7df-343c539e5367
+                      beneficiary_verification_id: dd7fbf81-9f17-4441-9f81-836f50f9e5f4
+      responses:
+        '202':
+          description: Payout Accepted.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/payout_data'
+              examples:
+                Digital:
+                  value:
+                    meta:
+                      request_id: 3a25e630-16c6-41d8-98ed-5a6b48ac71ac
+                    data:
+                      type: payout
+                      id: dd7fbf81-9f17-4441-9f81-836f50f9e5f4
+                      attributes:
+                        amount: '0.4'
+                        beneficiary:
+                          beneficiary_id: fea2bB77-54eF-E9E9-9ABC-6535831512aa
+                          beneficiary_description: My beneficiary
+                        status: pending
+                        transaction_id: 1c74eff6-70b9-481f-a178-9192861ecab0
+                        created_at: '2020-01-01T00:00:00.000Z'
+                        created_by: 3a25e630-16c6-41d8-98ed-5a6b48ac71ac
+                        asset: BTC
+                        wallet:
+                          wallet_id: LeOJMJwX2Q0Itbtbmu7Zf5
+                          wallet_name: My BTC wallet
+                        valuations:
+                        - asset: EUR
+                          value: '10000'
+                        signatories:
+                        - user_id: b355b732-ec56-43ac-9b86-93381a84dad1
+                Fiat:
+                  value:
+                    meta:
+                      request_id: 3a25e630-16c6-41d8-98ed-5a6b48ac71ac
+                    data:
+                      type: payout
+                      id: dd7fbf81-9f17-4441-9f81-836f50f9e5f4
+                      attributes:
+                        amount: '100'
+                        beneficiary:
+                          beneficiary_id: fea2bB77-54eF-E9E9-9ABC-6535831512ab
+                          beneficiary_description: My beneficiary
+                        status: pending
+                        transaction_id: 29d043bd-76b2-4c25-82c9-c9c7c0333124
+                        created_at: '2020-01-01T00:00:00.000Z'
+                        created_by: 3a25e630-16c6-41d8-98ed-5a6b48ac71ac
+                        asset: EUR
+                        reference: reference
+                        wallet:
+                          wallet_id: 04309b61-7e91-4b6a-bf48-93e7d5d7c792
+                          wallet_name: My fiat wallet
+                        signature:
+                          quorum: 1
+                        signatories:
+                        - user_id: b355b732-ec56-43ac-9b86-93381a84dad1
+components:
+  schemas:
+    sort:
+      type: string
+      default: created_at
+      example: created_at
+      description: The sort field used to filter data.
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    transfer_data:
+      description: Transfer data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - transfer
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            required:
+            - source_company_name
+            - destination_company_name
+            - source_wallet_id
+            - destination_wallet_id
+            - asset_code
+            - amount
+            - transaction_id
+            - created_at
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              batch_id:
+                $ref: '#/components/schemas/uuid'
+              source_company_name:
+                type: string
+              destination_company_name:
+                type: string
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              valuations:
+                $ref: '#/components/schemas/valuations'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              source_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              destination_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              created_by:
+                $ref: '#/components/schemas/created_by'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              signature:
+                $ref: '#/components/schemas/signature'
+    conversion_data:
+      description: Conversion data without id.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            $ref: '#/components/schemas/uuid'
+          type:
+            type: string
+            enum:
+            - conversion
+          attributes:
+            required:
+            - sell_wallet_id
+            - sell_wallet_name
+            - sell_asset_code
+            - sell_amount
+            - buy_wallet_id
+            - buy_wallet_name
+            - buy_asset_code
+            - buy_amount
+            - requested_by
+            - requested_by_user_name
+            - transaction_id
+            - created_at
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_name:
+                $ref: '#/components/schemas/sanitized_string'
+              sell_asset_code:
+                $ref: '#/components/schemas/asset'
+              sell_amount:
+                $ref: '#/components/schemas/positive_amount'
+              buy_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              buy_wallet_name:
+                $ref: '#/components/schemas/sanitized_string'
+              buy_asset_code:
+                $ref: '#/components/schemas/asset'
+              buy_amount:
+                $ref: '#/components/schemas/positive_amount'
+              requested_by:
+                $ref: '#/components/schemas/uuid'
+              requested_by_user_name:
+                $ref: '#/components/schemas/sanitized_string'
+              dealt_by:
+                $ref: '#/components/schemas/uuid'
+              dealt_by_employee_email:
+                $ref: '#/components/schemas/employee_email'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              fee_percentage:
+                $ref: '#/components/schemas/positive_amount'
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    payin_digital_source:
+      description: Source of a payin in digital currency.
+      type: object
+      properties:
+        address:
+          type: string
+          description: The external wallet address that initiated the payment.
+    positive_integer:
+      type: integer
+      example: 10000
+      maximum: 2147483647
+      minimum: 0
+      description: Strictly positive int32.
+    transfer_status_public:
+      type: string
+      enum:
+      - pending
+      - refused
+      - completed
+      - awaiting co-signer
+      - insufficient funds
+      - in process
+      - submitted
+      example: pending
+      description: Status of the transfer.
+    public_payment_link_transaction_data:
+      description: Public payment-link data.
+      allOf:
+      - $ref: '#/components/schemas/payment_link_transaction_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/payin_status_public'
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    created_by:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: The id of the user that initiated the payout.
+    transaction_wallet_info:
+      description: Wallet information in a transaction.
+      type: object
+      required:
+      - wallet_id
+      - wallet_name
+      properties:
+        wallet_id:
+          $ref: '#/components/schemas/uuid'
+        wallet_name:
+          type: string
+          description: The name of the wallet.
+          example: My wallet
+    employee_email:
+      type: string
+      format: email
+      pattern: '@fipto\.com$'
+      example: employee@fipto.com
+      description: Email of the employee.
+    payin_status_public:
+      type: string
+      enum:
+      - in transit
+      - completed
+      - returned
+      - waiting for travel rule information
+      example: returned
+      description: Status of the payin.
+    wallet_address:
+      type: string
+      example: 0x71C*
+      description: The public address associated with a wallet details on the blockchain.
+    open_trade:
+      description: Data from open trade transfer
+      type: object
+      required:
+      - amount
+      - asset
+      properties:
+        asset:
+          $ref: '#/components/schemas/asset'
+        amount:
+          $ref: '#/components/schemas/positive_amount'
+    transaction_beneficiary_info:
+      description: Information of beneficiary into a transaction.
+      type: object
+      required:
+      - beneficiary_id
+      properties:
+        beneficiary_id:
+          $ref: '#/components/schemas/uuid'
+        beneficiary_description:
+          description: The description given to the beneficiary.
+          type: string
+          example: My beneficiary
+        beneficiary_address:
+          description: The blockchain address of the beneficiary.
+          type: string
+          example: 0x71C*
+        beneficiary_source_account:
+          description: The source account of the beneficiary.
+          type: string
+          example: FR1420041010050500013M02606
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    public_conversion_data:
+      description: Public conversion data.
+      allOf:
+      - $ref: '#/components/schemas/conversion_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/transaction_conversion_status_public'
+    strictly_positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$
+    payout_status_public:
+      type: string
+      enum:
+      - pending
+      - rejected
+      - completed
+      - awaiting co-signer
+      - insufficient funds
+      - in process
+      - submitted
+      - awaiting approval
+      example: pending
+      description: Status of the payout.
+    asset_value:
+      type: string
+      description: The estimated value of the asset (based on the quote asset).
+    payout_initiate_raw_data:
+      description: Payout data to initiate a payout.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - payout
+          attributes:
+            type: object
+            required:
+            - beneficiary_id
+            - amount
+            properties:
+              beneficiary_id:
+                $ref: '#/components/schemas/uuid'
+              beneficiary_verification_id:
+                description: 'The id of a fresh verification made with the beneficiary verification endpoint. Under the VOP (Verification Of Payee) scheme, this verification is mandatory for every EUR transaction.
+
+                  '
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+              amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+    fiat_reference:
+      type: string
+      pattern: ^[a-zA-Z0-9-.&/\s]*$
+      minLength: 6
+      maxLength: 35
+      description: Payment reference used in fiat transactions to convey information about the payment being made. Allow alphanumeric, -, ., &, /, space and all accented characters. The minimum length must be 6 characters without counting the spaces.
+    payout_data:
+      description: Payout data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - payout
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              source:
+                $ref: '#/components/schemas/transaction_wallet_info'
+              destination:
+                $ref: '#/components/schemas/transaction_beneficiary_info'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              valuations:
+                $ref: '#/components/schemas/valuations'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              created_by:
+                $ref: '#/components/schemas/created_by'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              signature:
+                $ref: '#/components/schemas/signature'
+              blockchain_data:
+                $ref: '#/components/schemas/blockchain_data'
+              open_trade:
+                $ref: '#/components/schemas/open_trade'
+    signature:
+      description: Data of signature.
+      type: object
+      properties:
+        quorum:
+          description: The required number of signatories.
+          allOf:
+          - $ref: '#/components/schemas/positive_integer'
+        signatories:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                $ref: '#/components/schemas/uuid'
+    sort_transaction_list:
+      description: Possible sort for the list transaction.
+      allOf:
+      - $ref: '#/components/schemas/sort'
+      enum:
+      - created_at
+      - amount
+      - status
+    payin_fiat_source:
+      description: Source of a payin in fiat currency.
+      type: object
+      properties:
+        iban:
+          type: string
+          description: The IBAN of the bank account that initiated the payment.
+        bic:
+          type: string
+          description: The BIC of the bank account that initiated the payment.
+        name:
+          type: string
+          description: The name of the bank account that initiated the payment.
+        physical_address:
+          type: string
+          description: The physical address of the bank account that initiated the payment.
+        country:
+          type: string
+          description: The country of the bank account that initiated the payment.
+    operation_data:
+      description: Plan of the operation and transactions linked to it.
+      type: object
+      required:
+      - id
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+          enum:
+          - operation
+        id:
+          $ref: '#/components/schemas/uuid'
+        attributes:
+          type: object
+          required:
+          - plan
+          - status
+          - transactions
+          properties:
+            plan:
+              type: array
+              items:
+                $ref: '#/components/schemas/plan_data'
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/transaction_data'
+    approval_group:
+      description: An approver group whose authorization rule is still awaiting a sign-off.
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        name:
+          type: string
+    asset_type:
+      description: Type of the asset.
+      type: string
+      enum:
+      - digital
+      - fiat
+      example: digital
+    created_at:
+      type: string
+      format: date-time
+      description: The specific date on which the transaction has been created.
+    transaction_conversion_status_public:
+      type: string
+      enum:
+      - confirmed
+      - completed
+      - returned
+      - insufficient funds
+      example: confirmed
+      description: Status of the conversion transaction.
+    plan_transfer:
+      description: Plan for a transfer
+      type: object
+      required:
+      - type
+      - amount
+      - source_wallet_id
+      - source_wallet_name
+      - source_wallet_asset
+      - source_company_name
+      - destination_wallet_id
+      - destination_wallet_name
+      - destination_company_name
+      - destination_wallet_asset
+      properties:
+        type:
+          type: string
+          enum:
+          - transfer
+        amount:
+          $ref: '#/components/schemas/positive_amount'
+        source_wallet_id:
+          description: The ID of the source wallet.
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+        destination_wallet_id:
+          description: The ID of the destination wallet.
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+        destination_wallet_name:
+          description: The name of the destination wallet.
+          type: string
+        source_wallet_name:
+          description: The name of the source wallet.
+          type: string
+        source_company_name:
+          description: The name of the source wallets's company.
+          type: string
+        destination_company_name:
+          description: The name of the destination wallet's company.
+          type: string
+        source_wallet_asset:
+          $ref: '#/components/schemas/asset'
+        destination_wallet_asset:
+          $ref: '#/components/schemas/asset'
+    valuation:
+      description: Valuation of an asset.
+      type: object
+      properties:
+        asset:
+          description: The quote asset of the provided valuation.
+          type: string
+          enum:
+          - EUR
+          - USD
+        value:
+          $ref: '#/components/schemas/asset_value'
+    public_transfer_data:
+      description: Public transfer data.
+      allOf:
+      - $ref: '#/components/schemas/transfer_data'
+      - type: object
+        properties:
+          caller_can_approve:
+            type: boolean
+            readOnly: true
+            description: Whether the requesting user may approve the pending action on this transaction.
+          pending_action_initiated_by:
+            allOf:
+            - $ref: '#/components/schemas/uuid'
+            readOnly: true
+            description: User ID that initiated the pending action, if any.
+          approval_progress:
+            allOf:
+            - $ref: '#/components/schemas/approval_progress'
+            readOnly: true
+            description: AND multi-rule approval progress for the pending action, if any.
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/transfer_status_public'
+    transaction_data:
+      description: Transaction data.
+      oneOf:
+      - $ref: '#/components/schemas/public_payin_data'
+      - $ref: '#/components/schemas/public_payout_data'
+      - $ref: '#/components/schemas/public_conversion_data'
+      - $ref: '#/components/schemas/public_payment_link_transaction_data'
+      - $ref: '#/components/schemas/public_transfer_data'
+    blockchain_data:
+      description: Data from the blockchain.
+      type: object
+      required:
+      - transaction_hash
+      - block_explorer_link
+      properties:
+        transaction_hash:
+          description: The hash of the transaction.
+          type: string
+        block_explorer_link:
+          description: The link to the transaction on the block explorer.
+          type: string
+    public_payin_data:
+      description: Public payin data.
+      allOf:
+      - $ref: '#/components/schemas/payin_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/payin_status_public'
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^\d+(\.\d+)?$
+    public_payout_data:
+      description: Public payout data.
+      allOf:
+      - $ref: '#/components/schemas/payout_data'
+      - type: object
+        properties:
+          caller_can_approve:
+            type: boolean
+            readOnly: true
+            description: Whether the requesting user may approve the pending action on this transaction.
+          pending_action_initiated_by:
+            allOf:
+            - $ref: '#/components/schemas/uuid'
+            readOnly: true
+            description: User ID that initiated the pending action, if any.
+          approval_progress:
+            allOf:
+            - $ref: '#/components/schemas/approval_progress'
+            readOnly: true
+            description: AND multi-rule approval progress for the pending action, if any.
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/payout_status_public'
+    payin_data:
+      description: Payin data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - payin
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              valuations:
+                $ref: '#/components/schemas/valuations'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              source:
+                anyOf:
+                - $ref: '#/components/schemas/payin_fiat_source'
+                - $ref: '#/components/schemas/payin_digital_source'
+              destination:
+                $ref: '#/components/schemas/payin_destination'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              blockchain_data:
+                $ref: '#/components/schemas/blockchain_data'
+              open_trade:
+                $ref: '#/components/schemas/open_trade'
+    date:
+      description: Date.
+      type: string
+      format: date-time
+      example: '2017-07-21T17:32:28Z'
+    valuations:
+      description: Valuations of an asset.
+      type: array
+      items:
+        $ref: '#/components/schemas/valuation'
+      example:
+      - asset: EUR
+        value: '10.05'
+      - asset: USD
+        value: '12.97'
+    plan_payout:
+      description: Plan for a conversion
+      type: object
+      required:
+      - type
+      - beneficiary_id
+      - beneficiary_asset
+      - beneficiary_description
+      - beneficiary_address
+      properties:
+        type:
+          type: string
+          enum:
+          - payout
+        beneficiary_id:
+          description: The ID of the beneficiary.
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+        beneficiary_asset:
+          $ref: '#/components/schemas/asset'
+        beneficiary_description:
+          type: string
+        beneficiary_address:
+          description: Blockchain address of the beneficiary
+          allOf:
+          - $ref: '#/components/schemas/wallet_address'
+    transaction_type:
+      description: Type of transaction.
+      type: string
+      enum:
+      - payin
+      - payout
+      - conversion
+      - payment_link
+      - transfer
+      - internal_transfer
+    pagination:
+      description: Information about the pagination of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - total_results
+          - query_parameters
+          properties:
+            total_results:
+              description: The total number of results
+              type: number
+              example: 100
+            query_parameters:
+              allOf:
+              - $ref: '#/components/schemas/query_parameters'
+              required:
+              - page_number
+              - page_size
+              - sort
+              properties:
+                page_number:
+                  type: number
+                  example: 1
+                page_size:
+                  type: number
+                  example: 100
+                sort:
+                  type: string
+                  example: created_at
+    payin_destination:
+      description: Destination of a payin
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/transaction_wallet_info'
+      properties:
+        wallet_details_id:
+          $ref: '#/components/schemas/uuid'
+        wallet_details_name:
+          type: string
+          description: The name of the wallet details.
+        wallet_details_address:
+          $ref: '#/components/schemas/wallet_address'
+        wallet_details_tag:
+          type: string
+          description: The tag associated with a wallet details on the blockchain.
+        wallet_details_iban:
+          type: string
+          description: The IBAN associated with a wallet details.
+    payment_link_transaction_data:
+      description: Payment-link data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - payment_link
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            properties:
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              destination:
+                $ref: '#/components/schemas/payin_destination'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+    plan_conversion:
+      description: Plan for a conversion
+      type: object
+      required:
+      - type
+      - buy_wallet_id
+      - buy_wallet_name
+      - sell_wallet_id
+      - sell_wallet_name
+      - buy_wallet_asset
+      - sell_wallet_asset
+      properties:
+        type:
+          type: string
+          enum:
+          - conversion
+        buy_wallet_id:
+          description: The ID of the buy wallet.
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+        buy_wallet_name:
+          description: The name of the buy wallet.
+          type: string
+        sell_wallet_id:
+          description: The ID of the sell wallet.
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+        sell_wallet_name:
+          description: The name of the sell wallet.
+          type: string
+        sell_wallet_asset:
+          $ref: '#/components/schemas/asset'
+        buy_wallet_asset:
+          $ref: '#/components/schemas/asset'
+    approval_progress:
+      description: 'AND multi-rule approval progress for the pending action on an entity,
+
+        embedded in detail responses. Present only when a pending action exists;
+
+        a freshly-initiated action reports 0 of N.
+
+        '
+      type: object
+      required:
+      - approvals_received
+      - approvals_required
+      - pending_approver_groups
+      properties:
+        approvals_received:
+          type: integer
+        approvals_required:
+          type: integer
+        pending_approver_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/approval_group'
+    plan_data:
+      description: A step of an operation plan
+      oneOf:
+      - $ref: '#/components/schemas/plan_transfer'
+      - $ref: '#/components/schemas/plan_conversion'
+      - $ref: '#/components/schemas/plan_payout'
+      discriminator:
+        propertyName: type
+        mapping:
+          transfer: '#/components/schemas/plan_transfer'
+          conversion: '#/components/schemas/plan_conversion'
+          payout: '#/components/schemas/plan_payout'
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
+    filter_transaction_types:
+      name: transaction_types
+      in: query
+      required: false
+      description: Filter for specific transaction types.
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/transaction_type'
+    filters_date_to:
+      name: date_to
+      in: query
+      required: false
+      description: Filter to get data before or at the specific date.
+      schema:
+        $ref: '#/components/schemas/date'
+    filter_can_be_signed_by:
+      name: can_be_signed_by
+      in: query
+      required: false
+      description: Filter on a specific user that can sign the payouts..
+      schema:
+        $ref: '#/components/schemas/uuid'
+    filters_date_from:
+      name: date_from
+      in: query
+      required: false
+      description: Filter to get data after or at the specific date.
+      schema:
+        $ref: '#/components/schemas/date'
+    wallet_id:
+      name: wallet_id
+      in: path
+      required: true
+      description: The Wallet ID given by Fipto.
+      example: 03a596dd-8b4e-4bb5-a8b9-3a7ddb8ad960
+      schema:
+        $ref: '#/components/schemas/uuid'
+    filter_wallet_id:
+      name: wallet_id
+      in: query
+      required: false
+      description: Filter for a specific wallet_id.
+      schema:
+        $ref: '#/components/schemas/uuid'
+    filter_asset_types:
+      name: asset_types
+      in: query
+      required: false
+      description: Filter for specific asset types.
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/asset_type'
+    filter_operation_id:
+      name: operation_id
+      in: query
+      required: true
+      description: Filter for a specific operation id.
+      schema:
+        $ref: '#/components/schemas/uuid'
+    transaction_id:
+      name: transaction_id
+      in: path
+      required: true
+      description: The Transaction ID given by Fipto.
+      example: 8f6a1c57-3025-4a27-95da-218bf79f9eb5
+      schema:
+        $ref: '#/components/schemas/uuid'
+    page_size:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items to include in each page of the paginated results. The default value is 100.
+      schema:
+        type: number
+        example: 100
+    filter_public_transaction_status:
+      name: statuses
+      in: query
+      required: false
+      description: Filter for specifics transaction status.
+      schema:
+        type: array
+        items:
+          anyOf:
+          - $ref: '#/components/schemas/payin_status_public'
+          - $ref: '#/components/schemas/payout_status_public'
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"

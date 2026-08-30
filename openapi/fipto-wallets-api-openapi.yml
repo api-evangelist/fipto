@@ -1,0 +1,732 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Wallets API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Wallets
+  description: Manage wallets and their related wallet details.
+paths:
+  /companies/{company_id}/wallets:
+    post:
+      summary: Create wallet
+      description: Create a new wallet for your company.
+      operationId: createWalletByCompanyId
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/wallet_raw_data'
+      responses:
+        '201':
+          description: Wallet successfully created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_data'
+    get:
+      summary: Get wallets
+      description: Retrieve the list of all wallets in your company.
+      operationId: listWallets
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/page_number'
+      - $ref: '#/components/parameters/page_size_optional'
+      - name: sort
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/sort_wallets_list'
+      - $ref: '#/components/parameters/valuation_asset'
+      - $ref: '#/components/parameters/value'
+      - $ref: '#/components/parameters/assets'
+      responses:
+        '200':
+          description: Retrieve the list of wallets.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/pagination'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/wallet_data_valuation'
+  /companies/{company_id}/wallets/{wallet_id}:
+    get:
+      summary: Get a wallet
+      description: Retrieve a specific wallet by its unique identifier.
+      operationId: getWallet
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      - $ref: '#/components/parameters/valuation_asset'
+      responses:
+        '200':
+          description: Retrieve a wallet.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_data_valuation'
+    patch:
+      summary: Rename a wallet
+      description: Update the name of a specific wallet.
+      operationId: updateWalletName
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/wallet_patch_data'
+      responses:
+        '200':
+          description: Retrieve an updated wallet.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_data'
+  /companies/{company_id}/wallets/{wallet_id}/wallet-details:
+    post:
+      summary: Create a wallet details
+      description: Create a wallet details for a wallet.
+      operationId: createWalletDetailsByWalletId
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/wallet_details_raw_data'
+      responses:
+        '201':
+          description: Wallet details successfully created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_details_data'
+    get:
+      summary: Get wallet details
+      description: Retrieve the list of wallet details for a given wallet.
+      operationId: getWalletDetailsByWalletId
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      - $ref: '#/components/parameters/page_number'
+      - $ref: '#/components/parameters/page_size'
+      - name: sort
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/sort_wallet_details_list'
+      responses:
+        '200':
+          description: List of all beneficiaries.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/pagination'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/wallet_details_data'
+  /companies/{company_id}/wallets/{wallet_id}/wallet-details/{wallet_details_id}:
+    get:
+      summary: Get a wallet details
+      description: Retrieve a specific wallet details information.
+      operationId: getWalletDetails
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      - $ref: '#/components/parameters/wallet_details_id'
+      responses:
+        '200':
+          description: Retrieve a beneficiary.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_details_data'
+    patch:
+      summary: Rename a wallet details
+      description: Update the name of a specific wallet details.
+      operationId: updateWalletDetails
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      - $ref: '#/components/parameters/wallet_details_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/wallet_details_patch_raw_data'
+      responses:
+        '200':
+          description: Retrieve an updated wallet detail.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_details_data'
+  /companies/{company_id}/wallets/{wallet_id}/wallet-details/{wallet_details_id}/download:
+    get:
+      summary: Get a wallet details pdf
+      description: Retrieve a specific wallet details pdf.
+      operationId: getWalletDetailsPDF
+      tags:
+      - Wallets
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      - $ref: '#/components/parameters/wallet_details_id'
+      responses:
+        '200':
+          description: Retrieve a wallet details pdf.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/wallet_details_pdf_data'
+components:
+  schemas:
+    sort:
+      type: string
+      default: created_at
+      example: created_at
+      description: The sort field used to filter data.
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    wallet_details_count:
+      type: integer
+      example: 3
+      description: Number of wallet details linked to this wallet.
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    wallet_subtype:
+      description: Subtype of a wallet.
+      type: string
+      enum:
+      - primary
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    object_id:
+      description: Unique id of object
+      type: object
+      properties:
+        id:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+    wallet_details_raw_data:
+      description: Wallet details without id
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            default: wallet_details
+          attributes:
+            required:
+            - name
+            properties:
+              name:
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                minLength: 1
+                maxLength: 80
+                example: My wallet details
+                description: The name of the wallet details.
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    wallet_details_digital_tag:
+      description: Data about Wallet Details of type digital with tag.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_digital'
+      - type: object
+        properties:
+          tag:
+            type: string
+    wallet_address:
+      type: string
+      example: 0x71C*
+      description: The public address associated with a wallet details on the blockchain.
+    wallet_details_digital:
+      description: Data about Wallet Details of type digital.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_common'
+      - type: object
+        required:
+        - address
+        properties:
+          address:
+            $ref: '#/components/schemas/wallet_address'
+          name:
+            allOf:
+            - $ref: '#/components/schemas/sanitized_string'
+            maxLength: 80
+            example: Acme - Payment Project X
+            description: The wallet details name.
+    wallet_patch_data:
+      description: Wallet information used to modify a Wallet
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            default: wallet
+          attributes:
+            required:
+            - name
+            properties:
+              name:
+                description: Wallet's name.
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                minLength: 1
+                maxLength: 80
+    wallet_details_data:
+      description: Wallet details with id
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - $ref: '#/components/schemas/wallet_details_raw_data'
+      - type: object
+        properties:
+          attributes:
+            $ref: '#/components/schemas/wallet_details'
+    wallet_details_pdf_data:
+      description: Wallet details pdf data
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - type: object
+        properties:
+          id:
+            type: string
+            example: wallet details id
+            description: The unique identifier of the wallet details PDF.
+          type:
+            type: string
+            example: wallet_details_pdf
+            description: The type of the resource.
+          attributes:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+                description: The URL to access the PDF.
+              expiration_date:
+                type: string
+                format: date-time
+                description: The expiration date of the PDF.
+            required:
+            - url
+            - expiration_date
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    amount:
+      type: string
+      description: Amount expressed in a currency.
+      example: '1000'
+      pattern: ^-?\d*(\.\d+)?$
+    wallet_raw_data:
+      description: Wallet data without id
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        properties:
+          type:
+            type: string
+            default: wallet
+          attributes:
+            required:
+            - name
+            - asset
+            properties:
+              name:
+                description: The name given to the wallet.
+                type: string
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                minLength: 1
+                maxLength: 80
+              asset:
+                $ref: '#/components/schemas/asset'
+    available_balance:
+      type: string
+      description: The current available balance of assets for the wallet.
+    forecasted_balance:
+      type: string
+      description: The forecasted balance of assets for the wallet.
+    sort_wallets_list:
+      description: Possible sort for the list wallet.
+      allOf:
+      - $ref: '#/components/schemas/sort'
+      enum:
+      - created_at
+      - name
+      - asset_code
+      - value
+    wallet_data:
+      description: Wallet information with id
+      allOf:
+      - $ref: '#/components/schemas/wallet_raw_data'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            required:
+            - balances
+            properties:
+              subtype:
+                $ref: '#/components/schemas/wallet_subtype'
+              balances:
+                type: object
+                required:
+                - available
+                - forecasted
+                properties:
+                  available:
+                    $ref: '#/components/schemas/available_balance'
+                  forecasted:
+                    $ref: '#/components/schemas/forecasted_balance'
+    country_code:
+      type: string
+      description: Code 2 characters of country
+      pattern: ^[A-Z]{2}$
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    sort_wallet_details_list:
+      description: Possible sort for the list wallet details.
+      allOf:
+      - $ref: '#/components/schemas/sort'
+      enum:
+      - created_at
+      - name
+      - asset_code
+    wallet_data_valuation:
+      description: Wallet data with valuation
+      allOf:
+      - $ref: '#/components/schemas/wallet_data'
+      - type: object
+        required:
+        - attributes
+        properties:
+          attributes:
+            required:
+            - value
+            properties:
+              value:
+                description: Represents the value of the wallet in the selected valuation asset. If no price for the asset found then the value is null.
+                allOf:
+                - $ref: '#/components/schemas/amount'
+              valuation_asset:
+                $ref: '#/components/schemas/valuation_wallet_asset'
+              wallet_details_count:
+                $ref: '#/components/schemas/wallet_details_count'
+              wallet_details_generation_enabled:
+                type: boolean
+                description: Indicates if the wallet details generation is enabled.
+              created_at:
+                type: string
+                format: date-time
+                description: Wallet creation timestamp (RFC-3339). Lets clients scope a wallet to a period, e.g. the account-statement selector only offers wallets that existed during the selected month.
+    wallet_details_fiat_iban:
+      description: Data about Wallet Details of type fiat with iban.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_common'
+      - type: object
+        required:
+        - iban
+        properties:
+          iban:
+            type: string
+            example: FR1420041010050500013M02606
+            description: Standard international numbering system developed to identify an overseas wallet account.
+          bic:
+            type: string
+            description: Wallet Identifier Code. It is an 8 or 11-character number that is used to identify a specific wallet when you make an international transaction.
+            example: BPPCFRTT
+          bank_name:
+            type: string
+            example: CLEARBANK EUROPE N.V.
+          bank_postal_address:
+            type: string
+            example: KEIZERSGRACHT 391 A, AMSTERDAM
+          bank_country_code:
+            $ref: '#/components/schemas/country_code'
+    wallet_details_patch_raw_data:
+      description: Wallet details data that could be updated.
+      allOf:
+      - type: object
+        required:
+        - attributes
+        properties:
+          attributes:
+            properties:
+              name:
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                maxLength: 80
+                example: My new wallet detail
+                description: The new wallet detail name.
+    wallet_details_common:
+      description: Minimal info in common about Wallet Details.
+      type: object
+      required:
+      - asset
+      properties:
+        asset:
+          $ref: '#/components/schemas/asset'
+    pagination:
+      description: Information about the pagination of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - total_results
+          - query_parameters
+          properties:
+            total_results:
+              description: The total number of results
+              type: number
+              example: 100
+            query_parameters:
+              allOf:
+              - $ref: '#/components/schemas/query_parameters'
+              required:
+              - page_number
+              - page_size
+              - sort
+              properties:
+                page_number:
+                  type: number
+                  example: 1
+                page_size:
+                  type: number
+                  example: 100
+                sort:
+                  type: string
+                  example: created_at
+    wallet_details:
+      description: Wallet details digital/fiat.
+      anyOf:
+      - $ref: '#/components/schemas/wallet_details_digital'
+      - $ref: '#/components/schemas/wallet_details_digital_tag'
+      - $ref: '#/components/schemas/wallet_details_fiat_iban'
+    valuation_wallet_asset:
+      type: string
+      description: Specifies the asset used to value the wallet balance.
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    assets:
+      name: assets
+      in: query
+      description: Filters the wallets returned based on the specified assets. All assets will be returned by default.
+      example:
+      - BTC
+      - ETH
+      schema:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/components/schemas/asset'
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
+    page_size_optional:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items to include in each page of the paginated results. The default value is 100. The pagination is removed when the value is 0 (unlimited number of elements are returned).
+      schema:
+        type: number
+        example: 100
+    page_size:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items to include in each page of the paginated results. The default value is 100.
+      schema:
+        type: number
+        example: 100
+    wallet_id:
+      name: wallet_id
+      in: path
+      required: true
+      description: The Wallet ID given by Fipto.
+      example: 03a596dd-8b4e-4bb5-a8b9-3a7ddb8ad960
+      schema:
+        $ref: '#/components/schemas/uuid'
+    value:
+      in: query
+      name: value
+      description: Value of the wallet.
+      schema:
+        type: string
+    wallet_details_id:
+      name: wallet_details_id
+      in: path
+      required: true
+      description: The Wallet details ID given by Fipto.
+      example: a815f187-5ff7-406d-840a-906b703a1912
+      schema:
+        $ref: '#/components/schemas/uuid'
+    valuation_asset:
+      in: query
+      name: valuation_asset
+      description: Specifies the asset used to value the resources retrieved by the endpoint.
+      schema:
+        enum:
+        - EUR
+        - USD
+        default: EUR
+        allOf:
+        - $ref: '#/components/schemas/asset'
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"

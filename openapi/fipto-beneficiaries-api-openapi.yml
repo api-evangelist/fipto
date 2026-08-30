@@ -1,0 +1,2363 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Beneficiaries API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Beneficiaries
+  description: Manage your beneficiaries to whitelist addresses for payout.
+paths:
+  /companies/{company_id}/beneficiaries/file-conversion:
+    post:
+      summary: Validate a batch of beneficiaries
+      description: Validate a CSV representation of a batch of beneficiaries.
+      operationId: validateBatchBeneficiary
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  type: object
+                  required:
+                  - attributes
+                  - type
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                      - batch_beneficiaries
+                    attributes:
+                      type: object
+                      required:
+                      - beneficiaries
+                      properties:
+                        beneficiaries:
+                          type: string
+                          description: The file encoded in base 64.
+                          example: TODO
+      responses:
+        '200':
+          description: CSV successfully parsed
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/beneficiary_batch_item'
+  /companies/{company_id}/beneficiaries/batch:
+    post:
+      summary: Create a batch of beneficiaries
+      description: Create a batch of beneficiaries for your company. A beneficiary is necessary to initiate a payout.
+      operationId: createBatchBeneficiaries
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/beneficiary_batch_item'
+      responses:
+        '201':
+          description: Beneficiaries batch successfully created.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/beneficiary_batch_item'
+  /companies/{company_id}/beneficiaries:
+    post:
+      summary: Create a beneficiary
+      description: Create a beneficiary for your company. A beneficiary is necessary to initiate a payout.
+      operationId: createBeneficiary
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  oneOf:
+                  - allOf:
+                    - $ref: '#/components/schemas/beneficiary_raw_data'
+                    - not:
+                        properties:
+                          attributes:
+                            required:
+                            - corridor
+                  - $ref: '#/components/schemas/beneficiary_typed_data'
+            examples:
+              Digital - Natural person - Not belonging to company - dev front:
+                value:
+                  data:
+                    type: beneficiary
+                    attributes:
+                      description: My beneficiary
+                      wallet_details:
+                        asset: BTC
+                        address: bc1***
+                        travel_rule_status: incomplete
+                      beneficiary_info:
+                        type: individual
+                        firstname: Sam
+                        lastname: Doe
+                        address:
+                          street_address: 25 rue François 1er
+                          zip_code: '75008'
+                          city: Paris
+                          country_code: FR
+              Digital - Legal person - Not belonging to company - dev front:
+                value:
+                  data:
+                    type: beneficiary
+                    attributes:
+                      description: My beneficiary
+                      wallet_details:
+                        asset: BTC
+                        address: bc1***
+                        travel_rule_status: incomplete
+                      beneficiary_info:
+                        type: company
+                        name: Acme
+                        address:
+                          street_address: 25 rue François 1er
+                          zip_code: '75008'
+                          city: Paris
+                          country_code: FR
+              Digital - Belonging to company - dev front:
+                value:
+                  data:
+                    type: beneficiary
+                    attributes:
+                      description: My beneficiary
+                      wallet_details:
+                        asset: BTC
+                        address: bc1***
+                        travel_rule_status: incomplete
+                      beneficiary_info:
+                        type: self
+              Digital - Natural person - Not belonging to company:
+                value:
+                  data:
+                    type: beneficiary
+                    attributes:
+                      description: My beneficiary
+                      wallet_details:
+                        asset: BTC
+                        address: bc1***
+                        travel_rule_status: incomplete
+                      beneficiary_info:
+                        type: individual
+                        firstname: Sam
+                        lastname: Doe
+                        address:
+                          street_address: 25 rue François 1er
+                          zip_code: '75008'
+                          city: Paris
+                          country_code: FR
+              Digital - Legal person - Not belonging to company:
+                value:
+                  data:
+                    type: beneficiary
+                    attributes:
+                      description: My beneficiary
+                      wallet_details:
+                        asset: BTC
+                        address: bc1***
+                        travel_rule_status: incomplete
+                      beneficiary_info:
+                        type: company
+                        name: Acme
+                        address:
+                          street_address: 25 rue François 1er
+                          zip_code: '75008'
+                          city: Paris
+                          country_code: FR
+              Digital - Belonging to company:
+                value:
+                  data:
+                    type: beneficiary
+                    attributes:
+                      description: My beneficiary
+                      wallet_details:
+                        asset: BTC
+                        address: bc1***
+                        travel_rule_status: incomplete
+                      beneficiary_info:
+                        type: self
+      responses:
+        '201':
+          description: Beneficiary successfully created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/beneficiary_data'
+              examples:
+                Digital - Natural person - Not belonging to company:
+                  value:
+                    meta:
+                      request_id: dba2bB95-28eD-E9E9-9ABC-7535831512bb
+                    data:
+                      type: beneficiary
+                      id: fea2bB77-54eF-E9E9-9ABC-6535831512aa
+                      attributes:
+                        description: My beneficiary
+                        wallet_details:
+                          asset: BTC
+                          address: bc1***
+                          travel_rule_status: incomplete
+                        beneficiary_info:
+                          type: individual
+                          firstname: Sam
+                          lastname: Doe
+                          address:
+                            street_address: 25 rue François 1er
+                            zip_code: '75008'
+                            city: Paris
+                            country_code: FR
+                Digital - Legal person - Not belonging to company:
+                  value:
+                    meta:
+                      request_id: dba2bB95-28eD-E9E9-9ABC-7535831512bb
+                    data:
+                      type: beneficiary
+                      id: fea2bB77-54eF-E9E9-9ABC-6535831512aa
+                      attributes:
+                        description: My beneficiary
+                        wallet_details:
+                          asset: BTC
+                          address: bc1***
+                          travel_rule_status: incomplete
+                        beneficiary_info:
+                          type: company
+                          name: Acme
+                          address:
+                            street_address: 25 rue François 1er
+                            zip_code: '75008'
+                            city: Paris
+                            country_code: FR
+                Digital - Belonging to company:
+                  value:
+                    meta:
+                      request_id: dba2bB95-28eD-E9E9-9ABC-7535831512bb
+                    data:
+                      type: beneficiary
+                      id: fea2bB77-54eF-E9E9-9ABC-6535831512aa
+                      attributes:
+                        description: My beneficiary
+                        wallet_details:
+                          asset: BTC
+                          address: bc1***
+                          travel_rule_status: incomplete
+                        beneficiary_info:
+                          type: self
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              examples:
+                Invalid address:
+                  value:
+                    meta:
+                      request_id: XXXX-XXXX-XXXX-XXXX-XXXX
+                    errors:
+                      code: invalid_identifier
+                      source:
+                        pointer: /data/attributes/wallet_details/address
+                      title: Invalid Address
+                      detail: This address is not valid for the selected asset network
+        '403':
+          description: Forbidden — user is not authorized by the company's authorization policy.
+    get:
+      summary: Get beneficiaries
+      operationId: listBeneficiaries
+      description: Retrieve all beneficiaries of a company.
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/page_number'
+      - $ref: '#/components/parameters/page_size'
+      - $ref: '#/components/parameters/sort'
+      - $ref: '#/components/parameters/filter_beneficiary_types'
+      - $ref: '#/components/parameters/filter_beneficiary_assets'
+      responses:
+        '200':
+          description: List of all beneficiaries.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/pagination'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/beneficiary_data'
+  /companies/{company_id}/beneficiaries/{beneficiary_id}:
+    get:
+      summary: Get a beneficiary
+      operationId: searchBeneficiaries
+      description: Retrieve a specific beneficiary by its unique identifier.
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/beneficiary_id'
+      responses:
+        '200':
+          description: Retrieve a beneficiary.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/beneficiary_data'
+    delete:
+      summary: Delete a beneficiary
+      operationId: deleteBeneficiary
+      description: Delete a specific beneficiary.
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/beneficiary_id'
+      responses:
+        '204':
+          description: Beneficiary deleted
+  /companies/{company_id}/beneficiaries/{beneficiary_id}/verify:
+    post:
+      summary: Verify a euro beneficiary
+      operationId: verifyBeneficiary
+      description: Verify a euro beneficiary using the VOP (Verification Of Payee) scheme.
+      tags:
+      - Beneficiaries
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/beneficiary_id'
+      responses:
+        '200':
+          description: Verification done.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      type: object
+                      required:
+                      - type
+                      - id
+                      - attributes
+                      properties:
+                        id:
+                          type: string
+                          description: ID of the verification that was made. This ID can be used when initiating a payout to the same beneficiary.
+                        type:
+                          type: string
+                          enum:
+                          - verification_of_payee
+                        attributes:
+                          type: object
+                          required:
+                          - code
+                          properties:
+                            code:
+                              $ref: '#/components/schemas/vop_code'
+                            close_match:
+                              $ref: '#/components/schemas/vop_close_match'
+components:
+  schemas:
+    beneficiary_typed_brl_base:
+      description: 'BRL / PIX shared shape. The PIX key form is the corridor (BRL_TAX_ID /
+
+        BRL_EVP_RANDOM / BRL_EMAIL / BRL_PHONE_NUMBER). asset (BRL) and
+
+        account_number_type are kept (pinned per key branch) for backward
+
+        compatibility with the legacy wallet_details shape.
+
+        '
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          properties:
+            asset:
+              type: string
+              enum:
+              - BRL
+            account_number:
+              allOf:
+              - $ref: '#/components/schemas/account_number'
+              description: The PIX key — CPF/CNPJ (BRL_TAX_ID), the EVP random key (BRL_EVP_RANDOM), an email (BRL_EMAIL), or a phone in E.164 (BRL_PHONE_NUMBER).
+            account_number_type:
+              type: string
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_with_national_id'
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    beneficiary_info_legal:
+      description: Data about Beneficiary of type Legal.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_base'
+      - type: object
+        required:
+        - type
+        - name
+        - address
+        properties:
+          type:
+            type: string
+            enum:
+            - company
+          name:
+            type: string
+            description: The company name.
+            allOf:
+            - $ref: '#/components/schemas/company_name'
+            minLength: 1
+            maxLength: 70
+          address:
+            allOf:
+            - $ref: '#/components/schemas/address'
+            - $ref: '#/components/schemas/address_required_constraint_all_fields'
+          date_of_formation:
+            type: string
+            format: date
+            description: Date the legal entity was incorporated (YYYY-MM-DD). Maps to CPN `BENEFICIARY_DATE_OF_FORMATION`.
+            example: '2012-04-02'
+          country_of_formation_code:
+            description: ISO 3166-1 alpha-2 country of incorporation. Maps to CPN `BENEFICIARY_COUNTRY_OF_FORMATION`.
+            allOf:
+            - $ref: '#/components/schemas/country_code'
+    beneficiary_travel_rule_custodial:
+      description: Custodial travel rule information.
+      type: object
+      oneOf:
+      - properties:
+          vasp_name:
+            $ref: '#/components/schemas/vasp_name'
+          vasp_did:
+            type: string
+            pattern: ^did:[a-zA-Z0-9]*:.*$
+            example: did:ethr:0x123456789abcdef
+        required:
+        - vasp_did
+      - properties:
+          vasp_name:
+            $ref: '#/components/schemas/vasp_name'
+          vasp_website:
+            type: string
+            format: url
+        required:
+        - vasp_website
+        - vasp_name
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    beneficiary_typed_hkd_fps_account_number:
+      description: HKD FPS — bank account number + HK bank (clearing) code, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - HKD_FPS_ACCOUNT_NUMBER
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_identifier
+          - bank_identifier_type
+          - bank_country_code
+          properties:
+            asset:
+              type: string
+              enum:
+              - HKD
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_identifier:
+              allOf:
+              - $ref: '#/components/schemas/bank_identifier'
+              description: HK bank (clearing) code.
+            bank_identifier_type:
+              type: string
+              enum:
+              - bank_code
+            bank_country_code:
+              type: string
+              enum:
+              - HK
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_business_choice'
+    beneficiary_info_base:
+      description: Shared CPN requirement fields for natural and legal beneficiaries. Not used directly; merged via allOf.
+      type: object
+      properties:
+        phone_number:
+          type: string
+          description: Contact phone number for the beneficiary, in E.164 form. Maps to CPN `BENEFICIARY_PHONE_NUMBER`.
+          pattern: ^\+?[1-9]\d{1,14}$
+          example: '+442012345678'
+        email:
+          type: string
+          format: email
+          description: Contact email for the beneficiary. Maps to CPN `BENEFICIARY_EMAIL`.
+          example: maria.gomez@example.com
+        national_identification_number:
+          type: string
+          description: National identification document number (CURP/RFC for MX, CPF/CNPJ for BR, NRIC for SG, etc.). Maps to CPN `BENEFICIARY_NATIONAL_IDENTIFICATION_NUMBER` and `RECIPIENT_ID_NUMBER`.
+          example: '98765432100'
+        national_identification_expiration_date:
+          type: string
+          format: date
+          description: Expiry date of the national-identification document (YYYY-MM-DD).
+          example: '2031-08-15'
+    bank_identifier:
+      description: The bank's identification code, which can be either a BIC (Bank Identifier Code) for international transfers or a routing number for domestic transfers. This identifies the financial institution where the beneficiary's account is held.
+      type: string
+      example: BPPCFRTT
+    beneficiary_wallet_details_fiat:
+      description: Data about Wallet Details of type fiat for beneficiary creation.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_common'
+      - $ref: '#/components/schemas/account_identifiers'
+    beneficiary_batch_item:
+      description: Beneficiary data used in batch endpoints.
+      type: object
+      required:
+      - data
+      properties:
+        errors:
+          readOnly: true
+          description: list of blocking errors
+          type: array
+          items:
+            $ref: '#/components/schemas/json_error'
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - type
+            - attributes
+            properties:
+              type:
+                type: string
+                enum:
+                - batch_beneficiary
+              attributes:
+                type: object
+                additionalProperties: false
+                properties:
+                  description:
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                    minLength: 1
+                    maxLength: 80
+                    description: Description of the beneficiary that you want to add (e.g. "external wallet account").
+                  wallet_details:
+                    $ref: '#/components/schemas/wallet_details_beneficiary'
+                  beneficiary_info:
+                    description: Data about Beneficiary of type Legal.
+                    type: object
+                    required:
+                    - type
+                    - name
+                    - address
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                        - company
+                      name:
+                        type: string
+                        description: The company name.
+                        allOf:
+                        - $ref: '#/components/schemas/company_name'
+                        minLength: 1
+                        maxLength: 80
+                      address:
+                        $ref: '#/components/schemas/address'
+                  company_address_country:
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  company_registration_number:
+                    description: Company registration number
+                    type: string
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string'
+                  date_of_incorporation:
+                    description: The date the company was registered
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  legal_form_type:
+                    description: Legal type of the company
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  website:
+                    description: Website of the company
+                    type: string
+                    maxLength: 100
+                  company_country_incorporation:
+                    description: Country where the company were registered
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  industry:
+                    description: Industry type of the company
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  industry_requires_license:
+                    description: If the company needs a license to operate.
+                    type: boolean
+                  type_name_of_license:
+                    description: If a license is required, the type of the license.
+                    type: string
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string'
+                  country_of_license:
+                    description: If a license is required, the country ruling the license.
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  license_number_link:
+                    description: If a license is required, link to the license of the company
+                    allOf:
+                    - $ref: '#/components/schemas/sanitized_string_with_dot'
+                  payment_acquisition_confirmation:
+                    description: ''
+                    type: boolean
+                  expected_annual_volume:
+                    description: The price of the quote.
+                    type: string
+                    enum:
+                    - < 10,000
+                    - 10,000 - 50,000
+                    - 50,000 - 100,000
+                    - 100,000 - 500,000
+                    - 500,000 - 1,000,000
+                    - '> 1,000,000'
+                  customer_due_diligence_completed:
+                    description: ''
+                    type: boolean
+                  directors:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - type
+                      properties:
+                        full_name:
+                          type: string
+                          description: First name of the beneficiary.
+                          minLength: 1
+                          maxLength: 50
+                          allOf:
+                          - $ref: '#/components/schemas/sanitized_name'
+                        date_of_birth:
+                          type: string
+                          format: date
+                        residency_country:
+                          $ref: '#/components/schemas/sanitized_string_with_dot'
+                        country_of_birth:
+                          $ref: '#/components/schemas/sanitized_string_with_dot'
+                        type:
+                          $ref: '#/components/schemas/sanitized_string_with_dot'
+                  ubos:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        full_name:
+                          type: string
+                          description: First name of the beneficiary.
+                          minLength: 1
+                          maxLength: 50
+                          allOf:
+                          - $ref: '#/components/schemas/sanitized_name'
+                        date_of_birth:
+                          type: string
+                          format: date
+                        residency_country:
+                          type: string
+                        country_of_birth:
+                          type: string
+                        ownership_percent:
+                          description: The ownership percentage of the UBO.
+                          type: string
+                        type_of_ownership:
+                          description: If not possible to provide ownership_percent, describe the ownership of the company.
+                          allOf:
+                          - $ref: '#/components/schemas/sanitized_name'
+                  internal:
+                    readOnly: true
+                    description: True if the beneficiary's bank details match a Fipto wallet deposit address. Cannot be used as an automation payout destination.
+                    type: boolean
+                  warnings:
+                    readOnly: true
+                    description: list of non-blocking errors for the current beneficiaries.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/json_error'
+    ngn_bank_name:
+      type: string
+      description: Allowed Nigerian banks for NGN — CPN's BANK_NAME closed list (BANK-TRANSFER). Snapshot of CPN /requirements (2026-05-28); refresh when CPN changes it.
+      example: Suntrust Bank
+      enum:
+      - Suntrust Bank
+      - Accion MFB
+      - Standard Chartered Bank
+      - Nova MB
+      - Citibank Nigeria
+      - Wema Bank
+      - Bowen MFB
+      - Unity Bank
+      - Premium Trust bank
+      - Mint-Finex Microfinance Bank
+      - United Bank for Africa
+      - Access Bank (Diamond)
+      - Kuda Microfinance Bank
+      - Union Bank of Nigeria
+      - Ecobank Nigeria
+      - Providus Bank
+      - PremiumTrust Bank
+      - Access Bank
+      - Stanbic Ibtc Bank
+      - Polaris Bank
+      - Taj Bank
+      - Lotus Bank
+      - Titan Trust Bank
+      - Parallex Bank
+      - PalmPay
+      - Keystone Bank
+      - Nomba Bank
+      - Moniepoint Microfinance Bank
+      - OPay
+      - GoMoney
+      - Optimus Bank
+      - Zenith Bank
+      - Fairmoney Microfinance Bank Ltd
+      - Heritage Bank
+      - Enterprise Bank
+      - Guaranty Trust Bank
+      - GT Bank
+      - MoMo PSB
+      - 9JAPAY MICROFINANCE
+      - First City Monument Bank
+      - Bellbank Microfinance
+      - First Bank of Nigeria
+      - Titan-Paystack
+      - Mainstreet Bank
+      - Sterling Bank
+      - VFD Microfinance Bank
+      - Nownow（Contec Global)
+      - NET MFB
+      - Jaiz Bank
+      - Paga
+      - Fidelity Bank
+      - Globus Bank
+      - Alternative Bank
+    beneficiary_wallet_details_digital:
+      description: Data about Wallet Details of type digital.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_common'
+      - type: object
+        required:
+        - address
+        properties:
+          address:
+            $ref: '#/components/schemas/wallet_address'
+          travel_rule:
+            $ref: '#/components/schemas/beneficiary_travel_rule'
+          travel_rule_status:
+            readOnly: true
+            allOf:
+            - $ref: '#/components/schemas/travel_rule_status'
+    approval_group:
+      description: An approver group whose authorization rule is still awaiting a sign-off.
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        name:
+          type: string
+    beneficiary_typed_hkd_account_number:
+      description: HKD WIRE — account number, SWIFT/BIC, bank country, bank, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - HKD_ACCOUNT_NUMBER
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_identifier
+          - bank_identifier_type
+          - bank_country_code
+          - bank_name
+          properties:
+            asset:
+              type: string
+              enum:
+              - HKD
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_identifier:
+              allOf:
+              - $ref: '#/components/schemas/bank_identifier'
+              description: SWIFT/BIC.
+            bank_identifier_type:
+              type: string
+              enum:
+              - bic
+            bank_country_code:
+              $ref: '#/components/schemas/country_code'
+            bank_name:
+              type: string
+              description: Beneficiary bank name.
+              example: HSBC
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_with_state_province'
+    address_required_constraint_all_fields:
+      type: object
+      description: Constraint on address component to ensure all fields are set.
+      required:
+      - street_address
+      - zip_code
+      - city
+      - country_code
+    beneficiary_typed_ngn:
+      description: NGN bank transfer — account number, bank, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - NGN
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_name
+          properties:
+            asset:
+              type: string
+              enum:
+              - NGN
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_name:
+              $ref: '#/components/schemas/ngn_bank_name'
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_choice'
+    wallet_details_common:
+      description: Minimal info in common about Wallet Details.
+      type: object
+      required:
+      - asset
+      properties:
+        asset:
+          $ref: '#/components/schemas/asset'
+    beneficiary_type:
+      description: Type of beneficiary.
+      type: string
+      enum:
+      - self
+      - individual
+      - company
+    pagination:
+      description: Information about the pagination of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - total_results
+          - query_parameters
+          properties:
+            total_results:
+              description: The total number of results
+              type: number
+              example: 100
+            query_parameters:
+              allOf:
+              - $ref: '#/components/schemas/query_parameters'
+              required:
+              - page_number
+              - page_size
+              - sort
+              properties:
+                page_number:
+                  type: number
+                  example: 1
+                page_size:
+                  type: number
+                  example: 100
+                sort:
+                  type: string
+                  example: created_at
+    beneficiary_typed_mxn:
+      description: MXN SPEI transfer — CLABE, national id, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - MXN
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          properties:
+            asset:
+              type: string
+              enum:
+              - MXN
+            account_number:
+              allOf:
+              - $ref: '#/components/schemas/account_number'
+              description: 18-digit CLABE.
+            account_number_type:
+              type: string
+              enum:
+              - clabe
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_with_national_id'
+    beneficiary_info_choice:
+      description: Beneficiary identity — individual, company, or self.
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural'
+      - $ref: '#/components/schemas/beneficiary_info_legal'
+      - $ref: '#/components/schemas/beneficiary_is_self'
+      discriminator:
+        propertyName: type
+        mapping:
+          individual: '#/components/schemas/beneficiary_info_natural'
+          company: '#/components/schemas/beneficiary_info_legal'
+          self: '#/components/schemas/beneficiary_is_self'
+    beneficiary_info_with_state_province:
+      description: 'Identity for corridors that require a state/province in the beneficiary
+
+        address (e.g. CN). ''self'' carries no address in the payload — it is taken
+
+        from the originator company at payout time.
+
+        '
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural_state_province_required'
+      - $ref: '#/components/schemas/beneficiary_info_legal_state_province_required'
+      - $ref: '#/components/schemas/beneficiary_is_self'
+      discriminator:
+        propertyName: type
+        mapping:
+          individual: '#/components/schemas/beneficiary_info_natural_state_province_required'
+          company: '#/components/schemas/beneficiary_info_legal_state_province_required'
+          self: '#/components/schemas/beneficiary_is_self'
+    beneficiary_raw_data:
+      description: Beneficiary information without id.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            default: beneficiary
+          attributes:
+            required:
+            - description
+            - wallet_details
+            - beneficiary_info
+            properties:
+              description:
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string_with_dot'
+                minLength: 1
+                maxLength: 80
+                description: Description of the beneficiary that you want to add (e.g. "external wallet account").
+              wallet_details:
+                $ref: '#/components/schemas/wallet_details_beneficiary'
+              beneficiary_info:
+                oneOf:
+                - $ref: '#/components/schemas/beneficiary_info_natural'
+                - $ref: '#/components/schemas/beneficiary_info_legal'
+                - $ref: '#/components/schemas/beneficiary_is_self'
+                discriminator:
+                  propertyName: type
+                  mapping:
+                    individual: '#/components/schemas/beneficiary_info_natural'
+                    company: '#/components/schemas/beneficiary_info_legal'
+                    self: '#/components/schemas/beneficiary_is_self'
+    object_id:
+      description: Unique id of object
+      type: object
+      properties:
+        id:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    beneficiary_typed_hkd_fps_id:
+      description: HKD FPS — FPS identifier, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - HKD_FPS_ID
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_country_code
+          properties:
+            asset:
+              type: string
+              enum:
+              - HKD
+            account_number:
+              allOf:
+              - $ref: '#/components/schemas/account_number'
+              description: FPS identifier.
+            account_number_type:
+              type: string
+              enum:
+              - fps_id
+            bank_country_code:
+              type: string
+              enum:
+              - HK
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_business_choice'
+    cop_bank_name:
+      type: string
+      description: Allowed Colombian banks for COP — CPN's BANK_NAME closed list. Snapshot of CPN /requirements (2026-05-28); refresh when CPN changes the list.
+      example: BANCO DE BOGOTA
+      enum:
+      - COINK SA
+      - BANCO DE BOGOTA
+      - BANCO POPULAR
+      - BANCOLOMBIA
+      - CITIBANK
+      - BANCO GNB SUDAMERIS
+      - BANCO BBVA
+      - ITAÚ CORPBANCA COLOMBIA S.A
+      - BANCO COLPATRIA (Scotiabank)
+      - BANCO DE OCCIDENTE
+      - BANCOLDEX
+      - BANCO CAJA SOCIAL
+      - BANCO AGRARIO
+      - BANCO DAVIVIENDA
+      - AV VILLAS
+      - BANCO PICHINCHA
+      - BANCO COOMEVA
+      - BANCO FALABELLA
+      - BANCO SANTANDER DE NEGOCIOS COL.
+      - BANCO COOPERATIVO COOPCENTRAL
+      - CONFIAR S.A.
+      - COLTEFINANCIERA S.A.
+      - NEQUI
+      - BANCO W S.A.
+      - DAVIPLATA
+      - LULO BANK
+      - BANCO ITAÚ
+      - BANCAMIA S.A.
+      - BANCO SERFINANZA
+      - BANCO UNION
+      - BANCIEN
+      - BANCO JP MORGAN
+      - IRIS
+      - MOVII SA
+      - DING TECNIPAGOS SA
+      - POWWI
+      - UALA
+      - BANCO BTG PACTUAL COLOMBIA S.A.
+      - PIBANK
+      - RAPPIPAY
+      - BANCO MUNDO MUJER
+      - GLOBAL66
+      - NU
+      - JFK Cooperativa Financiera
+      - BOLD CF
+      - Banco Contactar S.A.
+    php_bank_name:
+      type: string
+      description: Allowed Philippine banks for PHP — union of CPN's InstaPay (86) and PESONet (100) BANK_NAME closed lists; the method (and thus list) is server-derived, so the union is accepted at creation. Snapshot 2026-05-28; refresh on CPN change.
+      example: AllBank (A Thrift Bank), Inc.
+      enum:
+      - AllBank (A Thrift Bank), Inc.
+      - Asenso
+      - Asia United Bank
+      - BananaPay
+      - Bangko Mabuhay
+      - Bank of China
+      - Bank of Commerce
+      - BanKo, A subsidiary of BPI
+      - BDO Bank
+      - BDO Network Bank
+      - Binangonan Rural Bank (BRBDigital)
+      - BPI
+      - Camalig Bank
+      - Cantilan Bank
+      - CARD Bank
+      - CARD SME Bank
+      - Cebuana Lhuillier Bank/ Cebuana Xpress
+      - China Bank
+      - China Bank Savings
+      - CIMB Bank Philippines
+      - CIS Bayad Center/ Bayad
+      - City Savings Bank
+      - CTBC Bank (Philippines) Corp.
+      - Development Bank of the Philippines
+      - Dumaguete Bank
+      - Dungganon Bank
+      - EastWest Bank
+      - Easy Pay Global EMI Corp
+      - Equicom Savings Bank
+      - GCash
+      - GoTyme Bank
+      - GrabPay
+      - I-Remit/iCASH
+      - Infoserve / Nationlink
+      - ISLABANK
+      - JuanCash
+      - Komo/ EastWest Rural Bank
+      - LANDBANK / OFBank
+      - Lazada Wallet (Alipay Ph.)
+      - Legazpi Savings Bank
+      - Luzon Development Bank
+      - Malayan Bank Savings
+      - MarCoPay
+      - MariBank
+      - Maya Bank
+      - Maybank
+      - Metrobank
+      - Mindanao Consolidated CoopBank
+      - NetBank
+      - Omnipay, Inc.
+      - Own Bank
+      - PalawanPay
+      - Partner Rural Bank (Cotabato), Inc.
+      - PayMaya/ Maya Wallet
+      - PayMongo
+      - PBCOM
+      - PDAX
+      - Peppermint Bizmoto Inc.
+      - Philippine Business Bank, Inc., A Savings Bank
+      - Philippine Veterans Bank
+      - PhilTrust Bank
+      - PNB
+      - Producers Savings Bank Corporation
+      - PSBank
+      - Queenbank
+      - Quezon Capital Rural Bank
+      - RCBC / Diskartech
+      - Robinsons Bank
+      - Security Bank
+      - ShopeePay
+      - SpeedyPay
+      - Standard Chartered Bank
+      - Starpay
+      - Sterling Bank of Asia
+      - Sun Savings Bank
+      - TayoCash
+      - Tonik Bank
+      - TraxionPay/ DigiCOOP/ COOPNET
+      - UCPB Savings Bank
+      - Union Bank of the Philippines
+      - UnionDigital Bank
+      - UNOBank
+      - USSC
+      - Wealth Bank
+      - Wise Pilipinas, Inc.
+      - Yuanta Bank
+      - Agribusiness Banking Corporation-A Rural Bank
+      - Al-Amanah Islamic Invest. Bank
+      - ANZ Banking Group Ltd
+      - Bangko Kabayan
+      - Bangko Nuestra Señora Del Pilar
+      - Bangkok Bank - Manila Branch
+      - Bank of America, N.A. - Manila Branch
+      - Bank of Florida
+      - Bank Of Makati (A Savings Bank), Inc.
+      - Bayanihan Bank, Inc.
+      - Biñan Rural Bank, Inc.
+      - Cathay United Bank - Manila Branch
+      - Citibank, N.A. - Manila Branch
+      - Community Rural Bank of Romblon (Romblon), Inc.
+      - Cooperative Bank Of Quezon Province
+      - Deutsche Bank AG - Manila Branch
+      - First Consolidated Bank
+      - Gateway Rural Bank, Inc.
+      - Guagua Rural Bank
+      - HSBC
+      - Industrial and Commercial Bank of China Limited - Manila Branch
+      - Industrial Bank of Korea - Manila
+      - ING Bank N.V
+      - Innovative Bank, Inc. (A Rural Bank)
+      - JP Morgan Chase Bank, N.A - Manila Branch
+      - KEB Hana Bank – Manila Branch
+      - Laguna Prestige Bank
+      - LOLC Bank Philippines, Inc. A Thrift Bank
+      - Lulu Money
+      - Malarayat Rural Bank, Inc.
+      - Mega Int'l Commercial Bank - Manila Branch
+      - Mizuho Bank, Ltd. – Manila Branch
+      - Money Mall Rural Bank, Inc.
+      - MUFG Bank, Ltd. - Manila Branch
+      - MVSM Bank (A Rural Bank Since 1953) Inc.[Marikina Valley San Mateo Bank]
+      - New Rural Bank Of San Leonardo (Nueva Ecija), Inc.
+      - Rang-Ay Bank
+      - RBT Bank
+      - Rural Bank of Angeles, Inc.
+      - Rural Bank Of Bacolod City, Inc.
+      - Rural Bank Of Bauang, Inc.
+      - Rural Bank of Digos
+      - Rural Bank Of La Paz, Inc.
+      - Rural Bank Of Lebak (Sultan Kudarat), Incorporated
+      - Rural Bank of Mangaldan, Inc.
+      - Rural Bank of Montalban
+      - Rural Bank Of Porac (Pampanga), Inc.
+      - Rural Bank of Rosario (La Union), Inc.
+      - Rural Bank Of Sagay, Inc.
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    sanitized_string_with_dot:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °, .,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.-]*$
+    json_error_source:
+      description: representation of source in jsonerror format.
+      type: object
+      required:
+      - pointer
+      properties:
+        pointer:
+          type: string
+    company_name:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), ., space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,.\-]*$
+      maxLength: 100
+    beneficiary_typed_cop:
+      description: COP bank transfer — account number, bank, account type, national id.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - COP
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_name
+          - bank_account_type
+          properties:
+            asset:
+              type: string
+              enum:
+              - COP
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_name:
+              $ref: '#/components/schemas/cop_bank_name'
+            bank_account_type:
+              type: string
+              enum:
+              - checking
+              - savings
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_with_national_id_and_phone'
+    beneficiary_info_natural_id_required:
+      description: Individual beneficiary that must carry a national identification number.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural'
+      - required:
+        - national_identification_number
+    beneficiary_info_natural_state_province_required:
+      description: Individual whose beneficiary address must carry a state/province (e.g. CN).
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural'
+      - type: object
+        properties:
+          address:
+            type: object
+            required:
+            - state_province
+    beneficiary_travel_rule:
+      description: Travel rule data linked to a beneficiary
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_travel_rule_custodial'
+      - $ref: '#/components/schemas/travel_rule_non_custodial'
+      - type: object
+        readOnly: true
+        additionalProperties: false
+    beneficiary_typed_attributes:
+      description: Beneficiary attributes selected by corridor.
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_typed_digital'
+      - $ref: '#/components/schemas/beneficiary_typed_eur'
+      - $ref: '#/components/schemas/beneficiary_typed_cop'
+      - $ref: '#/components/schemas/beneficiary_typed_brl_tax_id'
+      - $ref: '#/components/schemas/beneficiary_typed_brl_evp_random'
+      - $ref: '#/components/schemas/beneficiary_typed_brl_email'
+      - $ref: '#/components/schemas/beneficiary_typed_brl_phone_number'
+      - $ref: '#/components/schemas/beneficiary_typed_mxn'
+      - $ref: '#/components/schemas/beneficiary_typed_ngn'
+      - $ref: '#/components/schemas/beneficiary_typed_sgd'
+      - $ref: '#/components/schemas/beneficiary_typed_cny'
+      - $ref: '#/components/schemas/beneficiary_typed_php'
+      - $ref: '#/components/schemas/beneficiary_typed_hkd_fps_id'
+      - $ref: '#/components/schemas/beneficiary_typed_hkd_fps_email'
+      - $ref: '#/components/schemas/beneficiary_typed_hkd_fps_phone_number'
+      - $ref: '#/components/schemas/beneficiary_typed_hkd_fps_account_number'
+      - $ref: '#/components/schemas/beneficiary_typed_hkd_account_number'
+      discriminator:
+        propertyName: corridor
+        mapping:
+          digital: '#/components/schemas/beneficiary_typed_digital'
+          EUR: '#/components/schemas/beneficiary_typed_eur'
+          COP: '#/components/schemas/beneficiary_typed_cop'
+          BRL_TAX_ID: '#/components/schemas/beneficiary_typed_brl_tax_id'
+          BRL_EVP_RANDOM: '#/components/schemas/beneficiary_typed_brl_evp_random'
+          BRL_EMAIL: '#/components/schemas/beneficiary_typed_brl_email'
+          BRL_PHONE_NUMBER: '#/components/schemas/beneficiary_typed_brl_phone_number'
+          MXN: '#/components/schemas/beneficiary_typed_mxn'
+          NGN: '#/components/schemas/beneficiary_typed_ngn'
+          SGD: '#/components/schemas/beneficiary_typed_sgd'
+          CNY: '#/components/schemas/beneficiary_typed_cny'
+          PHP: '#/components/schemas/beneficiary_typed_php'
+          HKD_FPS_ID: '#/components/schemas/beneficiary_typed_hkd_fps_id'
+          HKD_FPS_EMAIL: '#/components/schemas/beneficiary_typed_hkd_fps_email'
+          HKD_FPS_PHONE_NUMBER: '#/components/schemas/beneficiary_typed_hkd_fps_phone_number'
+          HKD_FPS_ACCOUNT_NUMBER: '#/components/schemas/beneficiary_typed_hkd_fps_account_number'
+          HKD_ACCOUNT_NUMBER: '#/components/schemas/beneficiary_typed_hkd_account_number'
+    beneficiary_typed_brl_evp_random:
+      description: BRL / PIX — EVP random key.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_typed_brl_base'
+      - type: object
+        properties:
+          corridor:
+            enum:
+            - BRL_EVP_RANDOM
+          wallet_details:
+            properties:
+              account_number_type:
+                enum:
+                - evp_random
+    vop_close_match:
+      type: string
+      description: 'If the code is "CMTC" (close match), this field contains the string that was returned as the name of the beneficiary by its bank, which differs from the name of the beneficiary as registered in our system.
+
+        '
+    approval_progress:
+      description: 'AND multi-rule approval progress for the pending action on an entity,
+
+        embedded in detail responses. Present only when a pending action exists;
+
+        a freshly-initiated action reports 0 of N.
+
+        '
+      type: object
+      required:
+      - approvals_received
+      - approvals_required
+      - pending_approver_groups
+      properties:
+        approvals_received:
+          type: integer
+        approvals_required:
+          type: integer
+        pending_approver_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/approval_group'
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    beneficiary_corridor:
+      type: string
+      readOnly: true
+      description: The beneficiary's payout corridor — the discriminator used on typed create. `digital` for crypto wallets; for fiat, the destination currency (e.g. `EUR`, `USD`, `COP`) or a `<CURRENCY>_<IDENTIFIER>` key for the multi-form rails (BRL PIX, HKD FPS). Read-only.
+      enum:
+      - digital
+      - EUR
+      - USD
+      - COP
+      - MXN
+      - NGN
+      - SGD
+      - CNY
+      - PHP
+      - BRL_TAX_ID
+      - BRL_EVP_RANDOM
+      - BRL_EMAIL
+      - BRL_PHONE_NUMBER
+      - HKD_FPS_ID
+      - HKD_FPS_EMAIL
+      - HKD_FPS_PHONE_NUMBER
+      - HKD_FPS_ACCOUNT_NUMBER
+      - HKD_ACCOUNT_NUMBER
+      example: COP
+    beneficiary_info_legal_state_province_required:
+      description: Company whose beneficiary address must carry a state/province (e.g. CN).
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_legal'
+      - type: object
+        properties:
+          address:
+            type: object
+            required:
+            - state_province
+    beneficiary_wallet_details_digital_tag:
+      description: Data about Wallet Details of type digital with tag.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
+      - type: object
+        maxLength: 80
+        properties:
+          tag:
+            type: string
+    account_number:
+      description: The account number of the beneficiary who will receive the funds. This is the unique identifier for the recipient's bank account.
+      type: string
+      example: FR1420041010050500013M02606
+    travel_rule_status:
+      description: Travel Rule status
+      type: string
+      enum:
+      - completed
+      - incomplete
+    vasp_name:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °, ., ;, space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.;-]*$
+    beneficiary_info_with_national_id:
+      description: 'Identity for corridors that require a national id (e.g. CO, BR, MX). The id
+
+        is required on tier beneficiaries (individual / company); ''self'' carries no
+
+        national id in the payload — it is taken from the originator company at
+
+        payout time.
+
+        '
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural_id_required'
+      - $ref: '#/components/schemas/beneficiary_info_legal_id_required'
+      - $ref: '#/components/schemas/beneficiary_is_self'
+      discriminator:
+        propertyName: type
+        mapping:
+          individual: '#/components/schemas/beneficiary_info_natural_id_required'
+          company: '#/components/schemas/beneficiary_info_legal_id_required'
+          self: '#/components/schemas/beneficiary_is_self'
+    beneficiary_typed_brl_tax_id:
+      description: BRL / PIX — CPF/CNPJ tax-id key.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_typed_brl_base'
+      - type: object
+        properties:
+          corridor:
+            enum:
+            - BRL_TAX_ID
+          wallet_details:
+            properties:
+              account_number_type:
+                enum:
+                - tax_id
+    json_error:
+      description: representation of an error in json format.
+      type: object
+      required:
+      - source
+      - detail
+      - code
+      properties:
+        source:
+          $ref: '#/components/schemas/json_error_source'
+        detail:
+          type: string
+        code:
+          type: string
+    beneficiary_typed_data:
+      description: Beneficiary keyed on corridor (crypto or destination currency).
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - attributes
+        properties:
+          type:
+            type: string
+            enum:
+            - beneficiary
+          attributes:
+            $ref: '#/components/schemas/beneficiary_typed_attributes'
+    travel_rule_non_custodial:
+      description: Non custodial travel rule information.
+      type: object
+      required:
+      - is_self_hosted
+      properties:
+        is_self_hosted:
+          type: boolean
+          enum:
+          - true
+    beneficiary_typed_digital:
+      description: Crypto payout — wallet address, optional tag.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - digital
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          oneOf:
+          - allOf:
+            - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
+            - not:
+                required:
+                - tag
+          - allOf:
+            - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
+            - type: object
+              required:
+              - tag
+              properties:
+                tag:
+                  type: string
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_choice'
+    country_code:
+      type: string
+      description: Code 2 characters of country
+      pattern: ^[A-Z]{2}$
+    beneficiary_info_with_national_id_and_phone:
+      description: 'COP identity. Like beneficiary_info_with_national_id, but the individual
+
+        branch also requires a phone number (CPN RECIPIENT_PHONE_NUMBER is mandatory
+
+        for COP B2C payouts; the company and self branches are unchanged).
+
+        '
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural_id_phone_required'
+      - $ref: '#/components/schemas/beneficiary_info_legal_id_required'
+      - $ref: '#/components/schemas/beneficiary_is_self'
+      discriminator:
+        propertyName: type
+        mapping:
+          individual: '#/components/schemas/beneficiary_info_natural_id_phone_required'
+          company: '#/components/schemas/beneficiary_info_legal_id_required'
+          self: '#/components/schemas/beneficiary_is_self'
+    wallet_details_beneficiary:
+      description: Wallet details digital/fiat used for beneficiary.
+      anyOf:
+      - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
+      - $ref: '#/components/schemas/beneficiary_wallet_details_digital_tag'
+      - $ref: '#/components/schemas/beneficiary_wallet_details_fiat'
+    beneficiary_typed_php:
+      description: PHP transfer (InstaPay or PESONet) — account number, bank, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - PHP
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_name
+          properties:
+            asset:
+              type: string
+              enum:
+              - PHP
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_name:
+              $ref: '#/components/schemas/php_bank_name'
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_choice'
+    sanitized_name:
+      type: string
+      description: A string that must contain only upper and lower case letters, spaces, hyphens, and single quote characters
+      pattern: ^[a-zA-Z\s\-'À-ſ]+$
+    beneficiary_typed_sgd:
+      description: SGD bank transfer — account number, SWIFT/BIC, bank, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - SGD
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_identifier
+          - bank_identifier_type
+          - bank_name
+          properties:
+            asset:
+              type: string
+              enum:
+              - SGD
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_identifier:
+              allOf:
+              - $ref: '#/components/schemas/bank_identifier'
+              description: SWIFT/BIC.
+            bank_identifier_type:
+              type: string
+              enum:
+              - bic
+            bank_name:
+              type: string
+              description: Beneficiary bank name.
+              example: DBS Bank
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_with_state_province'
+    beneficiary_info_natural_id_phone_required:
+      description: 'Individual beneficiary that must carry a national identification number AND
+
+        a phone number. COP''s BANK-TRANSFER B2C corridor requires CPN
+
+        RECIPIENT_PHONE_NUMBER for individuals (company / self are unaffected).
+
+        '
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_natural'
+      - required:
+        - national_identification_number
+        - phone_number
+    beneficiary_status:
+      description: Beneficiary status
+      type: string
+      enum:
+      - active
+      - pending
+      - rejected
+      - awaiting_approval
+    beneficiary_typed_hkd_fps_email:
+      description: HKD FPS — registered email, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - HKD_FPS_EMAIL
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_country_code
+          properties:
+            asset:
+              type: string
+              enum:
+              - HKD
+            account_number:
+              allOf:
+              - $ref: '#/components/schemas/account_number'
+              description: FPS-registered email address.
+            account_number_type:
+              type: string
+              enum:
+              - email
+            bank_country_code:
+              type: string
+              enum:
+              - HK
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_business_choice'
+    beneficiary_typed_brl_phone_number:
+      description: BRL / PIX — phone (E.164) key.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_typed_brl_base'
+      - type: object
+        properties:
+          corridor:
+            enum:
+            - BRL_PHONE_NUMBER
+          wallet_details:
+            properties:
+              account_number_type:
+                enum:
+                - phone_number
+    beneficiary_info_natural:
+      description: Data about Beneficiary of type Natural.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_base'
+      - type: object
+        required:
+        - type
+        - firstname
+        - lastname
+        - address
+        properties:
+          type:
+            type: string
+            enum:
+            - individual
+          firstname:
+            type: string
+            description: First name of the beneficiary.
+            minLength: 1
+            maxLength: 30
+            allOf:
+            - $ref: '#/components/schemas/sanitized_name'
+            example: Victor
+          lastname:
+            type: string
+            description: Last name of the beneficiary.
+            minLength: 1
+            maxLength: 30
+            allOf:
+            - $ref: '#/components/schemas/sanitized_name'
+            example: Duponthieu
+          address:
+            allOf:
+            - $ref: '#/components/schemas/address'
+            - $ref: '#/components/schemas/address_required_constraint_all_fields'
+          date_of_birth:
+            type: string
+            format: date
+            description: Beneficiary's date of birth (YYYY-MM-DD). Maps to CPN `BENEFICIARY_DATE_OF_BIRTH`.
+            example: '1987-11-23'
+          nationality_code:
+            description: ISO 3166-1 alpha-2 nationality code. Maps to CPN `BENEFICIARY_NATIONALITY`.
+            allOf:
+            - $ref: '#/components/schemas/country_code'
+    beneficiary_description:
+      description: Free-text label of the beneficiary, shown in listings.
+      allOf:
+      - $ref: '#/components/schemas/sanitized_string_with_dot'
+      minLength: 1
+      maxLength: 80
+      example: My beneficiary
+    beneficiary_typed_brl_email:
+      description: BRL / PIX — email key.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_typed_brl_base'
+      - type: object
+        properties:
+          corridor:
+            enum:
+            - BRL_EMAIL
+          wallet_details:
+            properties:
+              account_number_type:
+                enum:
+                - email
+    beneficiary_info_business_choice:
+      description: 'Identity for corridors that only serve business beneficiaries (HK FPS
+
+        routes are B2B/C2B): a company, or ''self'' (the originator company).
+
+        Individuals are not accepted — CPN has no FPS B2C route.
+
+        '
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_info_legal'
+      - $ref: '#/components/schemas/beneficiary_is_self'
+      discriminator:
+        propertyName: type
+        mapping:
+          company: '#/components/schemas/beneficiary_info_legal'
+          self: '#/components/schemas/beneficiary_is_self'
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    beneficiary_is_self:
+      description: Is self type for the beneficiary.
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - self
+    beneficiary_data:
+      description: Beneficiary information with id
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - $ref: '#/components/schemas/beneficiary_raw_data'
+      - type: object
+        properties:
+          attributes:
+            properties:
+              status:
+                $ref: '#/components/schemas/beneficiary_status'
+              internal:
+                type: boolean
+                readOnly: true
+                description: True if the beneficiary's bank details match a Fipto wallet deposit address. Cannot be used as an automation payout destination.
+              corridor:
+                $ref: '#/components/schemas/beneficiary_corridor'
+              created_by:
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+                readOnly: true
+                description: The id of the user that created the beneficiary.
+              pending_action_initiated_by:
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+                readOnly: true
+                description: User ID that initiated the pending create_beneficiary action, if any.
+              caller_can_approve:
+                type: boolean
+                readOnly: true
+                description: Whether the requesting user may approve the pending action on this beneficiary.
+              approval_progress:
+                allOf:
+                - $ref: '#/components/schemas/approval_progress'
+                readOnly: true
+                description: AND multi-rule approval progress for the pending create_beneficiary action, if any.
+    beneficiary_info_legal_id_required:
+      description: Company beneficiary that must carry a national identification number.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_legal'
+      - required:
+        - national_identification_number
+    wallet_address:
+      type: string
+      example: 0x71C*
+      description: The public address associated with a wallet details on the blockchain.
+    beneficiary_typed_hkd_fps_phone_number:
+      description: HKD FPS — registered phone (E.164), name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - HKD_FPS_PHONE_NUMBER
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_country_code
+          properties:
+            asset:
+              type: string
+              enum:
+              - HKD
+            account_number:
+              allOf:
+              - $ref: '#/components/schemas/account_number'
+              description: FPS-registered phone number, E.164.
+            account_number_type:
+              type: string
+              enum:
+              - phone_number
+            bank_country_code:
+              type: string
+              enum:
+              - HK
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_business_choice'
+    vop_code:
+      type: string
+      enum:
+      - MTCH
+      - NMTC
+      - CMTC
+      - NOAP
+      - NOAV
+      description: "Code identifying the result of the verification, as defined in the VOP specification:\n  - MTCH: \"Match\" (the beneficiary name being matches what is registered at the bank for that IBAN)\n  - NMTC: \"No match\"\n  - CMTC: \"Close match\"\n  - NOAP: \"Not applicable\" (verification by the VOP network is not possible or applicable)\nA fifth custom code, NOAV (\"Not available\") indicates that Fipto could not connect to the VOP network to make the check.\n"
+    address:
+      type: object
+      description: A physical address.
+      properties:
+        street_address:
+          type: string
+          description: Street name and number of the address.
+          minLength: 1
+          maxLength: 70
+          pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,.;/*#@°ºª:-]*$
+          example: 25 rue François 1er
+        zip_code:
+          type: string
+          description: Zip code of the beneficiary.
+          minLength: 1
+          maxLength: 20
+          pattern: ^[a-zA-Z0-9- ]+$
+          allOf:
+          - $ref: '#/components/schemas/sanitized_string'
+          example: '75008'
+        city:
+          type: string
+          description: Full city name of the beneficiary.
+          minLength: 1
+          maxLength: 30
+          allOf:
+          - $ref: '#/components/schemas/sanitized_name'
+          example: Paris
+        country_code:
+          type: string
+          description: 2 letters representing a country (ISO 3166).
+          pattern: ^[A-Z]{2}$
+          example: FR
+        state_province:
+          type: string
+          description: State / province / administrative division. Maps to CPN ADDRESS.stateProvince.
+          maxLength: 70
+          example: Guangdong
+    beneficiary_typed_eur:
+      description: EUR / SEPA payout — IBAN + name + address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - EUR
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_identifier
+          - bank_identifier_type
+          properties:
+            asset:
+              type: string
+              enum:
+              - EUR
+            account_number:
+              allOf:
+              - $ref: '#/components/schemas/account_number'
+              description: IBAN.
+            account_number_type:
+              type: string
+              enum:
+              - iban
+            bank_identifier:
+              allOf:
+              - $ref: '#/components/schemas/bank_identifier'
+              description: BIC.
+            bank_identifier_type:
+              type: string
+              enum:
+              - bic
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_choice'
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    beneficiary_typed_cny:
+      description: CNY transfer (CIPS or WIRE) — account number, SWIFT/BIC, bank country, bank, name, address.
+      type: object
+      required:
+      - corridor
+      - description
+      - wallet_details
+      - beneficiary_info
+      properties:
+        corridor:
+          type: string
+          enum:
+          - CNY
+        description:
+          $ref: '#/components/schemas/beneficiary_description'
+        wallet_details:
+          type: object
+          required:
+          - asset
+          - account_number
+          - account_number_type
+          - bank_identifier
+          - bank_identifier_type
+          - bank_country_code
+          - bank_name
+          properties:
+            asset:
+              type: string
+              enum:
+              - CNY
+            account_number:
+              $ref: '#/components/schemas/account_number'
+            account_number_type:
+              type: string
+              enum:
+              - account_number
+            bank_identifier:
+              allOf:
+              - $ref: '#/components/schemas/bank_identifier'
+              description: SWIFT/BIC.
+            bank_identifier_type:
+              type: string
+              enum:
+              - bic
+            bank_country_code:
+              $ref: '#/components/schemas/country_code'
+            bank_name:
+              type: string
+              description: Beneficiary bank name.
+              example: Bank of China
+        beneficiary_info:
+          $ref: '#/components/schemas/beneficiary_info_with_state_province'
+    account_identifiers:
+      description: 'Account + bank identifiers for a fiat beneficiary. This is the legacy
+
+        create shape (unchanged from before the typed model: only
+
+        account_number + account_number_type required, bank_country_code
+
+        optional) and also the read shape for every fiat beneficiary. The
+
+        account_number_type / bank_identifier_type enums are wide because GET
+
+        returns this shape for typed-created (CPN corridor) rows too; on
+
+        create, the corridor-specific narrowing lives in the typed
+
+        corridor schemas at the gateway, and svc-beneficiary rejects
+
+        corridor account types for assets whose corridor is not enabled.
+
+        '
+      type: object
+      required:
+      - account_number
+      - account_number_type
+      properties:
+        account_number:
+          $ref: '#/components/schemas/account_number'
+        bank_identifier:
+          $ref: '#/components/schemas/bank_identifier'
+        bank_country_code:
+          $ref: '#/components/schemas/country_code'
+        account_number_type:
+          type: string
+          description: Type of the account number.
+          example: iban
+          enum:
+          - iban
+          - account_number
+          - routing_number
+          - clabe
+          - phone_number
+          - email
+          - evp_random
+          - tax_id
+          - fps_id
+        bank_identifier_type:
+          type: string
+          description: Type of the bank identifier.
+          example: bic
+          enum:
+          - bic
+          - routing_number
+          - bank_code
+        bank_name:
+          type: string
+          description: 'Name of the beneficiary''s bank. Optional; passes through to the
+
+            CPN BANK_NAME field. Required by some corridors at payout time.'
+          example: BBVA México
+        bank_account_type:
+          type: string
+          description: 'Bank-account routing type. Closed enum; CPN-side tokens vary by
+
+            corridor (CO `corriente` / `ahorros`; AR
+
+            `cuenta_corriente` / `caja_ahorros`; JP `touza` / `futsuu`) —
+
+            the server translates at the payload boundary.'
+          enum:
+          - checking
+          - savings
+  parameters:
+    filter_beneficiary_assets:
+      name: asset
+      in: query
+      required: false
+      description: Filter beneficiaries by destination asset code(s). All assets returned by default.
+      example:
+      - EUR
+      - USDC
+      schema:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/components/schemas/asset'
+    page_size:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items to include in each page of the paginated results. The default value is 100.
+      schema:
+        type: number
+        example: 100
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
+    beneficiary_id:
+      name: beneficiary_id
+      in: path
+      required: true
+      description: The Beneficiary ID given by Fipto.
+      example: 0967e211-93c9-481f-978a-182eef29c80a
+      schema:
+        $ref: '#/components/schemas/uuid'
+    sort:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        example: created_at
+        enum:
+        - created_at
+        - transaction_created_at
+    filter_beneficiary_types:
+      name: type
+      in: query
+      required: false
+      description: Filter beneficiaries by types.
+      schema:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/components/schemas/beneficiary_type'
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"

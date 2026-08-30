@@ -1,0 +1,131 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Payin Simulation API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Payin Simulation
+paths:
+  /companies/{company_id}/wallets/{wallet_id}/payin-simulation:
+    post:
+      summary: Simulate a payin
+      description: Generate a payin on the demo environment. Note that it may take up to 1 minute for the payin to appear in the transactions list. By default, the payin will target the first wallet details created within the wallet.
+      operationId: simulatePayin
+      tags:
+      - Payin Simulation
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/wallet_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/payin_simulation_data'
+      responses:
+        '204':
+          description: Payin simulation successful.
+components:
+  schemas:
+    payin_simulation_data:
+      description: Data used to simulate a payin
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - payin
+          attributes:
+            type: object
+            required:
+            - amount
+            properties:
+              source:
+                allOf:
+                - $ref: '#/components/schemas/payin_fiat_source'
+                required:
+                - name
+              reference:
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                minLength: 1
+              amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              wallet_details_id:
+                $ref: '#/components/schemas/uuid'
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    payin_fiat_source:
+      description: Source of a payin in fiat currency.
+      type: object
+      properties:
+        iban:
+          type: string
+          description: The IBAN of the bank account that initiated the payment.
+        bic:
+          type: string
+          description: The BIC of the bank account that initiated the payment.
+        name:
+          type: string
+          description: The name of the bank account that initiated the payment.
+        physical_address:
+          type: string
+          description: The physical address of the bank account that initiated the payment.
+        country:
+          type: string
+          description: The country of the bank account that initiated the payment.
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    strictly_positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    wallet_id:
+      name: wallet_id
+      in: path
+      required: true
+      description: The Wallet ID given by Fipto.
+      example: 03a596dd-8b4e-4bb5-a8b9-3a7ddb8ad960
+      schema:
+        $ref: '#/components/schemas/uuid'
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"

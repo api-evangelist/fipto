@@ -1,0 +1,633 @@
+openapi: 3.2.0
+info:
+  title: Fipto - OpenAPI 3.0 Automations API
+  version: 4.3.0
+  description: This is a REST API specifications based on OpenAPI 3.0 for Fipto solution.
+  contact:
+    url: https://www.fipto.com/
+servers:
+- url: https://api.fipto.app
+  description: The API server on production
+tags:
+- name: Automations
+paths:
+  /companies/{company_id}/automations:
+    get:
+      summary: List automation rules
+      description: Retrieve the list of automation rules for your company.
+      operationId: listAutomations
+      tags:
+      - Automations
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/page_number'
+      - $ref: '#/components/parameters/page_size_optional'
+      - name: status
+        in: query
+        description: Filter by status
+        required: false
+        schema:
+          type: string
+          enum:
+          - active
+      - name: rule_type
+        in: query
+        description: Filter by rule type
+        required: false
+        schema:
+          type: string
+          enum:
+          - conversion
+          - payout
+      responses:
+        '200':
+          description: List of automation rules.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - $ref: '#/components/schemas/pagination'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/automation_rule_data'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Automation is not enabled for this company\.$
+    post:
+      summary: Create automation rule
+      description: Create a new automation rule for automatic conversions or payouts. Requires 2FA verification.
+      operationId: createAutomation
+      tags:
+      - Automations
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/automation_rule_create_raw_data'
+      responses:
+        '201':
+          description: Automation rule successfully created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/automation_rule_data'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Automation is not enabled for this company\.$
+                        - pattern: ^Invalid rule_type\. Must be 'conversion' or 'payout'\.$
+                        - pattern: ^Invalid trigger_event\. Must be 'payin_completed' or 'conversion_completed'\.$
+                        - pattern: ^Conversion rules can only be triggered by 'payin_completed'\.$
+                        - pattern: ^Invalid amount_mode\. Must be 'full' or 'inherited'\.$
+                        - pattern: ^Source wallet asset is not eligible for automation\. Only EUR, USD, and stablecoins are supported\.$
+                        - pattern: ^This wallet already has an active automation rule for this trigger event\. Only one rule per trigger event per wallet is allowed\.$
+                        - pattern: ^destination_wallet_id is required for conversion rules\.$
+                        - pattern: ^Destination wallet must be different from source wallet\.$
+                        - pattern: ^Destination wallet must have a different currency for conversions\.$
+                        - pattern: ^destination_beneficiary_id is required for payout rules\.$
+                        - pattern: ^Beneficiary currency must match source wallet currency for payouts\.$
+                        - pattern: ^This beneficiary targets a Fipto wallet and cannot be used for automation\.$
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Unknown source wallet\.$
+                        - pattern: ^Unknown destination wallet\.$
+                        - pattern: ^Unknown beneficiary\.$
+  /companies/{company_id}/automations/{automation_id}:
+    get:
+      summary: Get automation rule
+      description: Retrieve a specific automation rule by its unique identifier.
+      operationId: getAutomation
+      tags:
+      - Automations
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/automation_id'
+      responses:
+        '200':
+          description: Automation rule details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/automation_rule_data'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Automation is not enabled for this company\.$
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Unknown automation rule\.$
+    put:
+      summary: Update automation rule
+      description: Update an existing automation rule's configuration.
+      operationId: updateAutomation
+      tags:
+      - Automations
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/automation_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/automation_rule_update_raw_data'
+      responses:
+        '200':
+          description: Automation rule successfully updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/meta'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/automation_rule_data'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Automation is not enabled for this company\.$
+                        - pattern: ^Cannot update a deleted automation rule\.$
+                        - pattern: ^Invalid rule_type\. Must be 'conversion' or 'payout'\.$
+                        - pattern: ^Invalid trigger_event\. Must be 'payin_completed' or 'conversion_completed'\.$
+                        - pattern: ^Conversion rules can only be triggered by 'payin_completed'\.$
+                        - pattern: ^Invalid amount_mode\. Must be 'full' or 'inherited'\.$
+                        - pattern: ^Source wallet asset is not eligible for automation\. Only EUR, USD, and stablecoins are supported\.$
+                        - pattern: ^This wallet already has an active automation rule for this trigger event\. Only one rule per trigger event per wallet is allowed\.$
+                        - pattern: ^destination_wallet_id is required for conversion rules\.$
+                        - pattern: ^Destination wallet must be different from source wallet\.$
+                        - pattern: ^Destination wallet must have a different currency for conversions\.$
+                        - pattern: ^destination_beneficiary_id is required for payout rules\.$
+                        - pattern: ^Beneficiary currency must match source wallet currency for payouts\.$
+                        - pattern: ^This beneficiary targets a Fipto wallet and cannot be used for automation\.$
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Unknown automation rule\.$
+                        - pattern: ^Unknown source wallet\.$
+                        - pattern: ^Unknown destination wallet\.$
+                        - pattern: ^Unknown beneficiary\.$
+    delete:
+      summary: Delete automation rule
+      description: Delete an automation rule.
+      operationId: deleteAutomation
+      tags:
+      - Automations
+      parameters:
+      - $ref: '#/components/parameters/company_id'
+      - $ref: '#/components/parameters/automation_id'
+      responses:
+        '204':
+          description: Automation rule successfully deleted.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Automation is not enabled for this company\.$
+                        - pattern: ^This automation rule has already been deleted\.$
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                    - message
+                    properties:
+                      message:
+                        type: string
+                        oneOf:
+                        - pattern: ^Unknown automation rule\.$
+components:
+  schemas:
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    automation_rule_create_raw_data:
+      description: Data for creating an automation rule
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+          enum:
+          - automation_rule
+        attributes:
+          type: object
+          required:
+          - source_wallet_id
+          - rule_type
+          - trigger_event
+          - amount_mode
+          properties:
+            source_wallet_id:
+              description: ID of the wallet that triggers the automation
+              allOf:
+              - $ref: '#/components/schemas/uuid'
+            rule_type:
+              type: string
+              enum:
+              - conversion
+              - payout
+              description: Type of automation (conversion or payout)
+            trigger_event:
+              type: string
+              enum:
+              - payin_completed
+              - conversion_completed
+              description: Event that triggers the automation
+            amount_mode:
+              type: string
+              enum:
+              - full
+              - inherited
+              description: How much to convert/payout
+            destination_wallet_id:
+              description: ID of the destination wallet (required for conversion rules)
+              allOf:
+              - $ref: '#/components/schemas/uuid'
+            destination_beneficiary_id:
+              description: ID of the destination beneficiary (required for payout rules)
+              allOf:
+              - $ref: '#/components/schemas/uuid'
+    automation_rule_update_raw_data:
+      description: Data for updating an automation rule
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+          enum:
+          - automation_rule
+        attributes:
+          type: object
+          required:
+          - source_wallet_id
+          - rule_type
+          - trigger_event
+          - amount_mode
+          properties:
+            source_wallet_id:
+              description: ID of the wallet that triggers the automation
+              allOf:
+              - $ref: '#/components/schemas/uuid'
+            rule_type:
+              type: string
+              enum:
+              - conversion
+              - payout
+              description: Type of automation (conversion or payout)
+            trigger_event:
+              type: string
+              enum:
+              - payin_completed
+              - conversion_completed
+              description: Event that triggers the automation
+            amount_mode:
+              type: string
+              enum:
+              - full
+              - inherited
+              description: How much to convert/payout
+            destination_wallet_id:
+              description: ID of the destination wallet (required for conversion rules)
+              allOf:
+              - $ref: '#/components/schemas/uuid'
+            destination_beneficiary_id:
+              description: ID of the destination beneficiary (required for payout rules)
+              allOf:
+              - $ref: '#/components/schemas/uuid'
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    pagination:
+      description: Information about the pagination of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - total_results
+          - query_parameters
+          properties:
+            total_results:
+              description: The total number of results
+              type: number
+              example: 100
+            query_parameters:
+              allOf:
+              - $ref: '#/components/schemas/query_parameters'
+              required:
+              - page_number
+              - page_size
+              - sort
+              properties:
+                page_number:
+                  type: number
+                  example: 1
+                page_size:
+                  type: number
+                  example: 100
+                sort:
+                  type: string
+                  example: created_at
+    automation_rule_data:
+      description: Automation rule information
+      type: object
+      required:
+      - id
+      - type
+      - attributes
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        type:
+          type: string
+          enum:
+          - automation_rule
+        attributes:
+          type: object
+          required:
+          - rule_type
+          - trigger_event
+          - amount_mode
+          - status
+          - source
+          - destination
+          - created_by
+          - created_at
+          - updated_at
+          properties:
+            rule_type:
+              type: string
+              enum:
+              - conversion
+              - payout
+              description: Type of automation (conversion or payout)
+            trigger_event:
+              type: string
+              enum:
+              - payin_completed
+              - conversion_completed
+              description: Event that triggers the automation
+            amount_mode:
+              type: string
+              enum:
+              - full
+              - inherited
+              description: How much to convert/payout
+            status:
+              type: string
+              enum:
+              - active
+              - deleted
+              description: Current status of the automation rule
+            source:
+              type: object
+              required:
+              - wallet_id
+              - wallet_name
+              - asset
+              properties:
+                wallet_id:
+                  $ref: '#/components/schemas/uuid'
+                wallet_name:
+                  type: string
+                asset:
+                  type: string
+            destination:
+              type: object
+              properties:
+                wallet_id:
+                  $ref: '#/components/schemas/uuid'
+                wallet_name:
+                  type: string
+                asset:
+                  type: string
+                beneficiary_id:
+                  $ref: '#/components/schemas/uuid'
+                beneficiary_description:
+                  type: string
+            created_by:
+              $ref: '#/components/schemas/uuid'
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    automation_id:
+      name: automation_id
+      in: path
+      required: true
+      description: The Automation Rule ID.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
+    page_size_optional:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items to include in each page of the paginated results. The default value is 100. The pagination is removed when the value is 0 (unlimited number of elements are returned).
+      schema:
+        type: number
+        example: 100
+x-topics:
+- title: Authentication
+  content: "# Getting Started\n\nBefore using the API you need to generate a private/public key pair using:\n\n    openssl genrsa -out private-key.rsa 2048\n    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private-key.rsa -out private-key.pem\n    openssl rsa -in private-key.rsa -pubout -out public-key.pem\n\nAfter sending us the public key by email, you will receive an api key, referred below as `keyId`.\n\n## HTTP request signing\n\nAll authenticated requests must include the following headers:\n\n- `Host`: target host of the request, e.g. \"api.fipto.app\"\n- `Date`: time of creation of the request, in RFC1123 format\n- `Signature`: signature of the request (see below)\n\nIn addition, requests with a body (POST, PUT, PATCH) must include:\n\n- `Content-Type`: MIME type of the body, e.g. \"application/json\"\n- `Digest`: base64-encoded SHA-256 hash of the body, in the format SHA-256=<hash>\n\n`Date` values are expected to be earlier than the present time, but not\nearlier than 1 minute.\n\n`Digest` values must obviously match to the actual hashes of their request\nbodies. The way of getting the digest is language-dependent but a basic\nUNIX approach would be\n\n    echo -n $BODY | openssl dgst -sha256 -binary | openssl enc -base64 -A\n\nwhere $BODY contains the string representation of the request body.\n\n### Signature header\n\nRequests are signed and verified using the [HTTP signatures protocol](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12).\nLibraries exist in different languages for building signed requests using that\nprotocol. We focus here on our specific requirements.\n\nWe expect the authentication data to be present in a `Signature` header.\n\nThe \"signing string\" itself should contain all the headers mentioned in the previous section,\nas well as the `(request-target)` pseudo-header (see [section 2.3](https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures-12#section-2.3)).\n\nFor example, the signing string of a POST request would look like:\n\n    (request-target): post /companies/c240e5bf-863e-4f44-91aa-cc74a8b3303f/wallets\n    host: api.demo.fipto.tech\n    date: Fri, 24 Jan 2025 08:56:30 GMT\n    content-type: application/json\n    digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=\n\nThat string must then be signed using the RSA-256 algorithm, encoded in base64 and\nincluded in the `signature` field of the header.\n\nThe following constraints apply to other fields:\n\n- the `keyId` field must contain the UUID of your API user\n- the `headers` field must contain `(request-target)` as well as all the headers mentioned above\n- the `algorithm` field must be \"hs2019\" (or its synonym \"rsa-sha256\")\n\nThe final header of a POST request should look like:\n\n    Signature: keyId=\"<uuid of your api user>\",algorithm=\"hs2019\",headers=\"(request-target) host date content-type digest\",signature=\"<base64-encoded signature>\"\n"
