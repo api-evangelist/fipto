@@ -205,6 +205,8 @@ apis:
   humanURL: https://docs.fipto.com/reference/getting-started
   baseURL: https://api.fipto.app
   tags:
+  - Payment Links
+  tags_raw:
   - Payment links
   properties:
   - type: OpenAPI
@@ -225,6 +227,8 @@ apis:
   humanURL: https://docs.fipto.com/reference/getting-started
   baseURL: https://api.fipto.app
   tags:
+  - Transaction
+  tags_raw:
   - Transactions
   properties:
   - type: OpenAPI
