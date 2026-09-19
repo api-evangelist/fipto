@@ -101,6 +101,8 @@ apis:
   humanURL: https://docs.fipto.com/reference/getting-started
   baseURL: https://api.fipto.app
   tags:
+  - Automation
+  tags_raw:
   - Automations
   properties:
   - type: OpenAPI
@@ -161,6 +163,8 @@ apis:
   humanURL: https://docs.fipto.com/reference/getting-started
   baseURL: https://api.fipto.app
   tags:
+  - Conversion
+  tags_raw:
   - Conversions
   properties:
   - type: OpenAPI
