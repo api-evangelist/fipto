@@ -70,35 +70,26 @@ components:
       default: created_at
       example: created_at
       description: The sort field used to filter data.
-    meta:
-      description: Metadata of the request
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
       type: object
-      required:
-      - meta
-      properties:
-        meta:
-          type: object
-          required:
-          - request_id
-          properties:
-            request_id:
-              oneOf:
-              - $ref: '#/components/schemas/uuid'
-              - $ref: '#/components/schemas/request_id'
-            query_parameters:
-              $ref: '#/components/schemas/query_parameters'
-    data_default:
-      description: Fields required on all objects.
+    object_id:
+      description: Unique id of object
       type: object
-      required:
-      - type
-      - attributes
       properties:
-        type:
-          type: string
-        attributes:
-          type: object
-          minProperties: 1
+        id:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    company_data:
+      description: Companies information with id
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - $ref: '#/components/schemas/company_raw_data'
     request_id:
       type: string
       pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
@@ -139,22 +130,27 @@ components:
           minLength: 2
           maxLength: 2
           example: FR
-    sanitized_string:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
     sanitized_string_with_dot:
       type: string
       description: Allow alphanumeric, +, -, _, &, (, ), °, .,  space, single quote, comma, and all accented characters.
       pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.-]*$
-    query_parameters:
-      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
-      type: object
-    uuid:
-      type: string
-      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
-      description: 128-bit value used to uniquely identify an object.
-      example: 123e4567-e89b-12d3-a456-426614174000
     company_raw_data:
       description: Companies information without id
       allOf:
@@ -184,11 +180,11 @@ components:
                 description: Address informations about company.
                 allOf:
                 - $ref: '#/components/schemas/company_address'
-    company_data:
-      description: Companies information with id
-      allOf:
-      - $ref: '#/components/schemas/object_id'
-      - $ref: '#/components/schemas/company_raw_data'
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
     country_code:
       type: string
       description: Code 2 characters of country
@@ -226,6 +222,18 @@ components:
                 sort:
                   type: string
                   example: created_at
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
     sort_company_list:
       description: Possible sort for the list companies.
       allOf:
@@ -233,23 +241,7 @@ components:
       enum:
       - created_at
       - name
-    object_id:
-      description: Unique id of object
-      type: object
-      properties:
-        id:
-          readOnly: true
-          allOf:
-          - $ref: '#/components/schemas/uuid'
   parameters:
-    company_id:
-      name: company_id
-      in: path
-      required: true
-      description: The Company ID given by Fipto.
-      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
-      schema:
-        $ref: '#/components/schemas/uuid'
     page_size:
       name: page_size
       in: query
@@ -258,6 +250,14 @@ components:
       schema:
         type: number
         example: 100
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
     page_number:
       name: page_number
       in: query

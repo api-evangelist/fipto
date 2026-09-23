@@ -54,53 +54,52 @@ paths:
                       $ref: '#/components/schemas/internal_transfer_data'
 components:
   schemas:
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    internal_transfer_initiate_raw_data:
+      description: Internal transfer data to initiate a wallet-to-wallet transfer.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - internal_transfer
+          attributes:
+            type: object
+            required:
+            - destination_wallet_id
+            - amount
+            properties:
+              destination_wallet_id:
+                description: ID of the destination wallet for the internal transfer. Must belong to the same company and same currency as the source wallet.
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+              amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+    positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^\d+(\.\d+)?$
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
     fiat_reference:
       type: string
       pattern: ^[a-zA-Z0-9-.&/\s]*$
       minLength: 6
       maxLength: 35
       description: Payment reference used in fiat transactions to convey information about the payment being made. Allow alphanumeric, -, ., &, /, space and all accented characters. The minimum length must be 6 characters without counting the spaces.
-    created_by:
-      type: string
-      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
-      description: The id of the user that initiated the payout.
-    data_default:
-      description: Fields required on all objects.
-      type: object
-      required:
-      - type
-      - attributes
-      properties:
-        type:
-          type: string
-        attributes:
-          type: object
-          minProperties: 1
-    asset:
-      description: The symbol/ticker of the crypto asset.
-      type: string
-      example: BTC
-    meta:
-      description: Metadata of the request
-      type: object
-      required:
-      - meta
-      properties:
-        meta:
-          type: object
-          required:
-          - request_id
-          properties:
-            request_id:
-              oneOf:
-              - $ref: '#/components/schemas/uuid'
-              - $ref: '#/components/schemas/request_id'
-            query_parameters:
-              $ref: '#/components/schemas/query_parameters'
-    request_id:
-      type: string
-      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
-      description: Request identifier.
     internal_transfer_data:
       description: Internal transfer data (same-client wallet-to-wallet).
       type: object
@@ -151,11 +150,23 @@ components:
                   type: array
                   items:
                     type: object
-    positive_amount:
-      type: string
-      description: Strictly positive amount expressed in the currency of the transaction.
-      example: '1000'
-      pattern: ^\d+(\.\d+)?$
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
     created_at:
       type: string
       format: date-time
@@ -165,53 +176,42 @@ components:
       pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
       description: 128-bit value used to uniquely identify an object.
       example: 123e4567-e89b-12d3-a456-426614174000
-    internal_transfer_initiate_raw_data:
-      description: Internal transfer data to initiate a wallet-to-wallet transfer.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - internal_transfer
-          attributes:
-            type: object
-            required:
-            - destination_wallet_id
-            - amount
-            properties:
-              destination_wallet_id:
-                description: ID of the destination wallet for the internal transfer. Must belong to the same company and same currency as the source wallet.
-                allOf:
-                - $ref: '#/components/schemas/uuid'
-              amount:
-                $ref: '#/components/schemas/strictly_positive_amount'
-              reference:
-                $ref: '#/components/schemas/fiat_reference'
-    query_parameters:
-      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+    created_by:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: The id of the user that initiated the payout.
+    data_default:
+      description: Fields required on all objects.
       type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
     strictly_positive_amount:
       type: string
       description: Strictly positive amount expressed in the currency of the transaction.
       example: '1000'
       pattern: ^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$
   parameters:
-    company_id:
-      name: company_id
-      in: path
-      required: true
-      description: The Company ID given by Fipto.
-      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
-      schema:
-        $ref: '#/components/schemas/uuid'
     wallet_id:
       name: wallet_id
       in: path
       required: true
       description: The Wallet ID given by Fipto.
       example: 03a596dd-8b4e-4bb5-a8b9-3a7ddb8ad960
+      schema:
+        $ref: '#/components/schemas/uuid'
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
       schema:
         $ref: '#/components/schemas/uuid'
 x-topics:

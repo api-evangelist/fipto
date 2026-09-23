@@ -57,36 +57,14 @@ paths:
           description: Request USD onboarding initiated.
 components:
   schemas:
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
     sort:
       type: string
       default: created_at
       example: created_at
       description: The sort field used to filter data.
-    meta:
-      description: Metadata of the request
-      type: object
-      required:
-      - meta
-      properties:
-        meta:
-          type: object
-          required:
-          - request_id
-          properties:
-            request_id:
-              oneOf:
-              - $ref: '#/components/schemas/uuid'
-              - $ref: '#/components/schemas/request_id'
-            query_parameters:
-              $ref: '#/components/schemas/query_parameters'
-    asset:
-      description: The symbol/ticker of the crypto asset.
-      type: string
-      example: BTC
-    request_id:
-      type: string
-      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
-      description: Request identifier.
     network_name:
       description: Name of network.
       type: string
@@ -98,6 +76,10 @@ components:
       - digital
       - fiat
       example: digital
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
     asset_data:
       description: Asset data.
       type: object
@@ -140,9 +122,36 @@ components:
       - asset_code
       - asset_type
       - network_name
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
     has_access:
       description: Specify if the company can interact with a specific asset.
       type: boolean
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    positive_integer:
+      type: integer
+      example: 10000
+      maximum: 2147483647
+      minimum: 0
+      description: Strictly positive int32.
     uuid:
       type: string
       pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
@@ -181,15 +190,6 @@ components:
                 sort:
                   type: string
                   example: created_at
-    query_parameters:
-      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
-      type: object
-    positive_integer:
-      type: integer
-      example: 10000
-      maximum: 2147483647
-      minimum: 0
-      description: Strictly positive int32.
   parameters:
     page_size:
       name: page_size

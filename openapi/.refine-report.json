@@ -1,0 +1,48 @@
+{
+  "provider": "fipto",
+  "sources": [
+    "_original/fipto-customer-api-openapi.json"
+  ],
+  "outputs": [
+    "fipto-aisp-pisp-api-openapi.yml",
+    "fipto-assets-api-openapi.yml",
+    "fipto-automations-api-openapi.yml",
+    "fipto-beneficiaries-api-openapi.yml",
+    "fipto-companies-api-openapi.yml",
+    "fipto-conversions-api-openapi.yml",
+    "fipto-internal-transfers-api-openapi.yml",
+    "fipto-payin-simulation-api-openapi.yml",
+    "fipto-payment-links-api-openapi.yml",
+    "fipto-transactions-api-openapi.yml",
+    "fipto-travel-rule-api-openapi.yml",
+    "fipto-wallets-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "1 archived document(s) dropped as subsets of other archived documents",
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "fipto-customer-api-openapi.json: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
+    "fipto-customer-api-openapi.json: declared missing tag: Automations",
+    "fipto-customer-api-openapi.json: declared missing tag: Internal Transfers",
+    "fipto-customer-api-openapi.json: declared missing tag: Payin Simulation",
+    "fipto-customer-api-openapi.json: declared missing tag: Travel Rule",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "_original/fipto-customer-api-openapi.yml: archived document superseded by a larger archived document",
+    "fipto-aisp-pisp-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-assets-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-automations-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-beneficiaries-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-companies-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-conversions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-internal-transfers-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-payin-simulation-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-payment-links-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-transactions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-travel-rule-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "fipto-wallets-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}
