@@ -36,43 +36,6 @@ paths:
           description: Payin simulation successful.
 components:
   schemas:
-    payin_simulation_data:
-      description: Data used to simulate a payin
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - payin
-          attributes:
-            type: object
-            required:
-            - amount
-            properties:
-              source:
-                allOf:
-                - $ref: '#/components/schemas/payin_fiat_source'
-                required:
-                - name
-              reference:
-                allOf:
-                - $ref: '#/components/schemas/sanitized_string'
-                minLength: 1
-              amount:
-                $ref: '#/components/schemas/strictly_positive_amount'
-              wallet_details_id:
-                $ref: '#/components/schemas/uuid'
-    sanitized_string:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
-    uuid:
-      type: string
-      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
-      description: 128-bit value used to uniquely identify an object.
-      example: 123e4567-e89b-12d3-a456-426614174000
     payin_fiat_source:
       description: Source of a payin in fiat currency.
       type: object
@@ -104,11 +67,48 @@ components:
         attributes:
           type: object
           minProperties: 1
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    payin_simulation_data:
+      description: Data used to simulate a payin
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - payin
+          attributes:
+            type: object
+            required:
+            - amount
+            properties:
+              source:
+                allOf:
+                - $ref: '#/components/schemas/payin_fiat_source'
+                required:
+                - name
+              reference:
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                minLength: 1
+              amount:
+                $ref: '#/components/schemas/strictly_positive_amount'
+              wallet_details_id:
+                $ref: '#/components/schemas/uuid'
     strictly_positive_amount:
       type: string
       description: Strictly positive amount expressed in the currency of the transaction.
       example: '1000'
       pattern: ^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
   parameters:
     wallet_id:
       name: wallet_id
