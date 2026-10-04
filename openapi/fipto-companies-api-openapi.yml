@@ -65,51 +65,54 @@ paths:
                       $ref: '#/components/schemas/company_data'
 components:
   schemas:
-    object_id:
-      description: Unique id of object
-      type: object
-      properties:
-        id:
-          readOnly: true
-          allOf:
-          - $ref: '#/components/schemas/uuid'
-    sanitized_string_with_dot:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °, .,  space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.-]*$
     uuid:
       type: string
       pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
       description: 128-bit value used to uniquely identify an object.
       example: 123e4567-e89b-12d3-a456-426614174000
-    request_id:
-      type: string
-      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
-      description: Request identifier.
-    sort:
-      type: string
-      default: created_at
-      example: created_at
-      description: The sort field used to filter data.
-    sanitized_string:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
     query_parameters:
       description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
       type: object
-    data_default:
-      description: Fields required on all objects.
+    pagination:
+      description: Information about the pagination of the request
       type: object
       required:
-      - type
-      - attributes
+      - meta
       properties:
-        type:
-          type: string
-        attributes:
+        meta:
           type: object
-          minProperties: 1
+          required:
+          - total_results
+          - query_parameters
+          properties:
+            total_results:
+              description: The total number of results
+              type: number
+              example: 100
+            query_parameters:
+              allOf:
+              - $ref: '#/components/schemas/query_parameters'
+              required:
+              - page_number
+              - page_size
+              - sort
+              properties:
+                page_number:
+                  type: number
+                  example: 1
+                page_size:
+                  type: number
+                  example: 100
+                sort:
+                  type: string
+                  example: created_at
+    sort_company_list:
+      description: Possible sort for the list companies.
+      allOf:
+      - $ref: '#/components/schemas/sort'
+      enum:
+      - created_at
+      - name
     company_address:
       required:
       - address_line_1
@@ -146,15 +149,24 @@ components:
           minLength: 2
           maxLength: 2
           example: FR
-    sort_company_list:
-      description: Possible sort for the list companies.
-      allOf:
-      - $ref: '#/components/schemas/sort'
-      enum:
-      - created_at
-      - name
-    pagination:
-      description: Information about the pagination of the request
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    meta:
+      description: Metadata of the request
       type: object
       required:
       - meta
@@ -162,34 +174,27 @@ components:
         meta:
           type: object
           required:
-          - total_results
-          - query_parameters
+          - request_id
           properties:
-            total_results:
-              description: The total number of results
-              type: number
-              example: 100
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
             query_parameters:
-              allOf:
-              - $ref: '#/components/schemas/query_parameters'
-              required:
-              - page_number
-              - page_size
-              - sort
-              properties:
-                page_number:
-                  type: number
-                  example: 1
-                page_size:
-                  type: number
-                  example: 100
-                sort:
-                  type: string
-                  example: created_at
+              $ref: '#/components/schemas/query_parameters'
     country_code:
       type: string
       description: Code 2 characters of country
       pattern: ^[A-Z]{2}$
+    company_data:
+      description: Companies information with id
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - $ref: '#/components/schemas/company_raw_data'
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
     company_raw_data:
       description: Companies information without id
       allOf:
@@ -219,37 +224,24 @@ components:
                 description: Address informations about company.
                 allOf:
                 - $ref: '#/components/schemas/company_address'
-    company_data:
-      description: Companies information with id
-      allOf:
-      - $ref: '#/components/schemas/object_id'
-      - $ref: '#/components/schemas/company_raw_data'
-    meta:
-      description: Metadata of the request
+    sort:
+      type: string
+      default: created_at
+      example: created_at
+      description: The sort field used to filter data.
+    sanitized_string_with_dot:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °, .,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.-]*$
+    object_id:
+      description: Unique id of object
       type: object
-      required:
-      - meta
       properties:
-        meta:
-          type: object
-          required:
-          - request_id
-          properties:
-            request_id:
-              oneOf:
-              - $ref: '#/components/schemas/uuid'
-              - $ref: '#/components/schemas/request_id'
-            query_parameters:
-              $ref: '#/components/schemas/query_parameters'
+        id:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/uuid'
   parameters:
-    page_number:
-      name: page_number
-      in: query
-      required: false
-      description: The page number retrieved in the paginated results. The default value is 1.
-      schema:
-        type: number
-        example: 1
     company_id:
       name: company_id
       in: path
@@ -258,6 +250,14 @@ components:
       example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
       schema:
         $ref: '#/components/schemas/uuid'
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
     page_size:
       name: page_size
       in: query

@@ -57,51 +57,14 @@ paths:
           description: Request USD onboarding initiated.
 components:
   schemas:
-    asset_type:
-      description: Type of the asset.
-      type: string
-      enum:
-      - digital
-      - fiat
-      example: digital
-    sort:
-      type: string
-      default: created_at
-      example: created_at
-      description: The sort field used to filter data.
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
     uuid:
       type: string
       pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
       description: 128-bit value used to uniquely identify an object.
       example: 123e4567-e89b-12d3-a456-426614174000
-    request_id:
-      type: string
-      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
-      description: Request identifier.
-    meta:
-      description: Metadata of the request
-      type: object
-      required:
-      - meta
-      properties:
-        meta:
-          type: object
-          required:
-          - request_id
-          properties:
-            request_id:
-              oneOf:
-              - $ref: '#/components/schemas/uuid'
-              - $ref: '#/components/schemas/request_id'
-            query_parameters:
-              $ref: '#/components/schemas/query_parameters'
-    network_name:
-      description: Name of network.
-      type: string
-      example: Bitcoin
-    query_parameters:
-      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
-      type: object
     pagination:
       description: Information about the pagination of the request
       type: object
@@ -135,9 +98,6 @@ components:
                 sort:
                   type: string
                   example: created_at
-    has_access:
-      description: Specify if the company can interact with a specific asset.
-      type: boolean
     asset:
       description: The symbol/ticker of the crypto asset.
       type: string
@@ -148,6 +108,36 @@ components:
       maximum: 2147483647
       minimum: 0
       description: Strictly positive int32.
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    network_name:
+      description: Name of network.
+      type: string
+      example: Bitcoin
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    sort:
+      type: string
+      default: created_at
+      example: created_at
+      description: The sort field used to filter data.
     asset_data:
       description: Asset data.
       type: object
@@ -179,6 +169,9 @@ components:
               $ref: '#/components/schemas/network_name'
             has_access:
               $ref: '#/components/schemas/has_access'
+    has_access:
+      description: Specify if the company can interact with a specific asset.
+      type: boolean
     sort_asset_list:
       description: Possible sort for the list asset.
       allOf:
@@ -190,15 +183,14 @@ components:
       - asset_code
       - asset_type
       - network_name
+    asset_type:
+      description: Type of the asset.
+      type: string
+      enum:
+      - digital
+      - fiat
+      example: digital
   parameters:
-    page_number:
-      name: page_number
-      in: query
-      required: false
-      description: The page number retrieved in the paginated results. The default value is 1.
-      schema:
-        type: number
-        example: 1
     company_id:
       name: company_id
       in: path
@@ -207,6 +199,14 @@ components:
       example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
       schema:
         $ref: '#/components/schemas/uuid'
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
     page_size:
       name: page_size
       in: query

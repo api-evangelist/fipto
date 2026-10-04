@@ -45,18 +45,22 @@ paths:
                       $ref: '#/components/schemas/beneficiary_travel_rule_patch_data'
 components:
   schemas:
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
     uuid:
       type: string
       pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
       description: 128-bit value used to uniquely identify an object.
       example: 123e4567-e89b-12d3-a456-426614174000
-    request_id:
-      type: string
-      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
-      description: Request identifier.
-    query_parameters:
-      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
-      type: object
+    beneficiary_travel_rule:
+      description: Travel rule data linked to a beneficiary
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_travel_rule_custodial'
+      - $ref: '#/components/schemas/travel_rule_non_custodial'
+      - type: object
+        readOnly: true
+        additionalProperties: false
     data_default:
       description: Fields required on all objects.
       type: object
@@ -91,27 +95,10 @@ components:
         required:
         - vasp_website
         - vasp_name
-    beneficiary_travel_rule_patch_data:
-      description: Beneficiary information used to modify a Beneficiary
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            default: beneficiary_travel_rule
-          attributes:
-            $ref: '#/components/schemas/beneficiary_travel_rule'
-    travel_rule_non_custodial:
-      description: Non custodial travel rule information.
-      type: object
-      required:
-      - is_self_hosted
-      properties:
-        is_self_hosted:
-          type: boolean
-          enum:
-          - true
+    vasp_name:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °, ., ;, space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.;-]*$
     meta:
       description: Metadata of the request
       type: object
@@ -129,18 +116,31 @@ components:
               - $ref: '#/components/schemas/request_id'
             query_parameters:
               $ref: '#/components/schemas/query_parameters'
-    beneficiary_travel_rule:
-      description: Travel rule data linked to a beneficiary
-      oneOf:
-      - $ref: '#/components/schemas/beneficiary_travel_rule_custodial'
-      - $ref: '#/components/schemas/travel_rule_non_custodial'
-      - type: object
-        readOnly: true
-        additionalProperties: false
-    vasp_name:
+    travel_rule_non_custodial:
+      description: Non custodial travel rule information.
+      type: object
+      required:
+      - is_self_hosted
+      properties:
+        is_self_hosted:
+          type: boolean
+          enum:
+          - true
+    request_id:
       type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °, ., ;, space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.;-]*$
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    beneficiary_travel_rule_patch_data:
+      description: Beneficiary information used to modify a Beneficiary
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            default: beneficiary_travel_rule
+          attributes:
+            $ref: '#/components/schemas/beneficiary_travel_rule'
   parameters:
     company_id:
       name: company_id
