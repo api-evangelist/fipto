@@ -308,6 +308,967 @@ paths:
                       $ref: '#/components/schemas/beneficiary_data'
 components:
   schemas:
+    payin_fiat_source:
+      description: Source of a payin in fiat currency.
+      type: object
+      properties:
+        iban:
+          type: string
+          description: The IBAN of the bank account that initiated the payment.
+        bic:
+          type: string
+          description: The BIC of the bank account that initiated the payment.
+        name:
+          type: string
+          description: The name of the bank account that initiated the payment.
+        physical_address:
+          type: string
+          description: The physical address of the bank account that initiated the payment.
+        country:
+          type: string
+          description: The country of the bank account that initiated the payment.
+    beneficiary_is_self:
+      description: Is self type for the beneficiary.
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - self
+    beneficiary_status:
+      description: Beneficiary status
+      type: string
+      enum:
+      - active
+      - pending
+      - rejected
+      - awaiting_approval
+    transfer_data:
+      description: Transfer data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - transfer
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            required:
+            - source_company_name
+            - destination_company_name
+            - source_wallet_id
+            - destination_wallet_id
+            - asset_code
+            - amount
+            - transaction_id
+            - created_at
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              batch_id:
+                $ref: '#/components/schemas/uuid'
+              source_company_name:
+                type: string
+              destination_company_name:
+                type: string
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              valuations:
+                $ref: '#/components/schemas/valuations'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              source_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              destination_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              created_by:
+                $ref: '#/components/schemas/created_by'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              signature:
+                $ref: '#/components/schemas/signature'
+    travel_rule_non_custodial:
+      description: Non custodial travel rule information.
+      type: object
+      required:
+      - is_self_hosted
+      properties:
+        is_self_hosted:
+          type: boolean
+          enum:
+          - true
+    transaction_wallet_info:
+      description: Wallet information in a transaction.
+      type: object
+      required:
+      - wallet_id
+      - wallet_name
+      properties:
+        wallet_id:
+          $ref: '#/components/schemas/uuid'
+        wallet_name:
+          type: string
+          description: The name of the wallet.
+          example: My wallet
+    company_name:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), ., space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,.\-]*$
+      maxLength: 100
+    beneficiary_travel_rule:
+      description: Travel rule data linked to a beneficiary
+      oneOf:
+      - $ref: '#/components/schemas/beneficiary_travel_rule_custodial'
+      - $ref: '#/components/schemas/travel_rule_non_custodial'
+      - type: object
+        readOnly: true
+        additionalProperties: false
+    beneficiary_info_base:
+      description: Shared CPN requirement fields for natural and legal beneficiaries. Not used directly; merged via allOf.
+      type: object
+      properties:
+        phone_number:
+          type: string
+          description: Contact phone number for the beneficiary, in E.164 form. Maps to CPN `BENEFICIARY_PHONE_NUMBER`.
+          pattern: ^\+?[1-9]\d{1,14}$
+          example: '+442012345678'
+        email:
+          type: string
+          format: email
+          description: Contact email for the beneficiary. Maps to CPN `BENEFICIARY_EMAIL`.
+          example: maria.gomez@example.com
+        national_identification_number:
+          type: string
+          description: National identification document number (CURP/RFC for MX, CPF/CNPJ for BR, NRIC for SG, etc.). Maps to CPN `BENEFICIARY_NATIONAL_IDENTIFICATION_NUMBER` and `RECIPIENT_ID_NUMBER`.
+          example: '98765432100'
+        national_identification_expiration_date:
+          type: string
+          format: date
+          description: Expiry date of the national-identification document (YYYY-MM-DD).
+          example: '2031-08-15'
+    payout_status_public:
+      type: string
+      enum:
+      - pending
+      - rejected
+      - completed
+      - awaiting co-signer
+      - insufficient funds
+      - in process
+      - submitted
+      - awaiting approval
+      example: pending
+      description: Status of the payout.
+    request_id:
+      type: string
+      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
+      description: Request identifier.
+    public_payin_data:
+      description: Public payin data.
+      allOf:
+      - $ref: '#/components/schemas/payin_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/payin_status_public'
+    query_parameters:
+      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
+      type: object
+    beneficiary_wallet_details_fiat:
+      description: Data about Wallet Details of type fiat for beneficiary creation.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_common'
+      - $ref: '#/components/schemas/account_identifiers'
+    asset:
+      description: The symbol/ticker of the crypto asset.
+      type: string
+      example: BTC
+    created_at:
+      type: string
+      format: date-time
+      description: The specific date on which the transaction has been created.
+    transaction_type:
+      description: Type of transaction.
+      type: string
+      enum:
+      - payin
+      - payout
+      - conversion
+      - payment_link
+      - transfer
+      - internal_transfer
+    beneficiary_corridor:
+      type: string
+      readOnly: true
+      description: The beneficiary's payout corridor — the discriminator used on typed create. `digital` for crypto wallets; for fiat, the destination currency (e.g. `EUR`, `USD`, `COP`) or a `<CURRENCY>_<IDENTIFIER>` key for the multi-form rails (BRL PIX, HKD FPS). Read-only.
+      enum:
+      - digital
+      - EUR
+      - USD
+      - COP
+      - MXN
+      - NGN
+      - SGD
+      - CNY
+      - PHP
+      - BRL_TAX_ID
+      - BRL_EVP_RANDOM
+      - BRL_EMAIL
+      - BRL_PHONE_NUMBER
+      - HKD_FPS_ID
+      - HKD_FPS_EMAIL
+      - HKD_FPS_PHONE_NUMBER
+      - HKD_FPS_ACCOUNT_NUMBER
+      - HKD_ACCOUNT_NUMBER
+      example: COP
+    employee_email:
+      type: string
+      format: email
+      pattern: '@fipto\.com$'
+      example: employee@fipto.com
+      description: Email of the employee.
+    public_transfer_data:
+      description: Public transfer data.
+      allOf:
+      - $ref: '#/components/schemas/transfer_data'
+      - type: object
+        properties:
+          caller_can_approve:
+            type: boolean
+            readOnly: true
+            description: Whether the requesting user may approve the pending action on this transaction.
+          pending_action_initiated_by:
+            allOf:
+            - $ref: '#/components/schemas/uuid'
+            readOnly: true
+            description: User ID that initiated the pending action, if any.
+          approval_progress:
+            allOf:
+            - $ref: '#/components/schemas/approval_progress'
+            readOnly: true
+            description: AND multi-rule approval progress for the pending action, if any.
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/transfer_status_public'
+    wallet_data:
+      description: Wallet information with id
+      allOf:
+      - $ref: '#/components/schemas/wallet_raw_data'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            required:
+            - balances
+            properties:
+              subtype:
+                $ref: '#/components/schemas/wallet_subtype'
+              balances:
+                type: object
+                required:
+                - available
+                - forecasted
+                properties:
+                  available:
+                    $ref: '#/components/schemas/available_balance'
+                  forecasted:
+                    $ref: '#/components/schemas/forecasted_balance'
+    available_balance:
+      type: string
+      description: The current available balance of assets for the wallet.
+    object_id:
+      description: Unique id of object
+      type: object
+      properties:
+        id:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/uuid'
+    sanitized_name:
+      type: string
+      description: A string that must contain only upper and lower case letters, spaces, hyphens, and single quote characters
+      pattern: ^[a-zA-Z\s\-'À-ſ]+$
+    aisp_pisp_payout_initiate_raw_data:
+      description: AISP/PISP Payout data to initiate a payout.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - payout
+          attributes:
+            type: object
+            required:
+            - beneficiary_id
+            - amount
+            - reference
+            properties:
+              beneficiary_id:
+                $ref: '#/components/schemas/uuid'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+    payin_digital_source:
+      description: Source of a payin in digital currency.
+      type: object
+      properties:
+        address:
+          type: string
+          description: The external wallet address that initiated the payment.
+    sort_wallets_list:
+      description: Possible sort for the list wallet.
+      allOf:
+      - $ref: '#/components/schemas/sort'
+      enum:
+      - created_at
+      - name
+      - asset_code
+      - value
+    public_conversion_data:
+      description: Public conversion data.
+      allOf:
+      - $ref: '#/components/schemas/conversion_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/transaction_conversion_status_public'
+    aisp_pisp_company_data:
+      description: AISP/PISP user information
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - aisp_pisp
+          attributes:
+            required:
+            - name
+            - role
+            properties:
+              name:
+                description: Name of the AISP/PISP.
+                type: string
+              role:
+                $ref: '#/components/schemas/aisp_pisp_role'
+    bank_identifier:
+      description: The bank's identification code, which can be either a BIC (Bank Identifier Code) for international transfers or a routing number for domestic transfers. This identifies the financial institution where the beneficiary's account is held.
+      type: string
+      example: BPPCFRTT
+    payin_data:
+      description: Payin data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - payin
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              valuations:
+                $ref: '#/components/schemas/valuations'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              source:
+                anyOf:
+                - $ref: '#/components/schemas/payin_fiat_source'
+                - $ref: '#/components/schemas/payin_digital_source'
+              destination:
+                $ref: '#/components/schemas/payin_destination'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              blockchain_data:
+                $ref: '#/components/schemas/blockchain_data'
+              open_trade:
+                $ref: '#/components/schemas/open_trade'
+    transaction_conversion_status_public:
+      type: string
+      enum:
+      - confirmed
+      - completed
+      - returned
+      - insufficient funds
+      example: confirmed
+      description: Status of the conversion transaction.
+    payin_destination:
+      description: Destination of a payin
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/transaction_wallet_info'
+      properties:
+        wallet_details_id:
+          $ref: '#/components/schemas/uuid'
+        wallet_details_name:
+          type: string
+          description: The name of the wallet details.
+        wallet_details_address:
+          $ref: '#/components/schemas/wallet_address'
+        wallet_details_tag:
+          type: string
+          description: The tag associated with a wallet details on the blockchain.
+        wallet_details_iban:
+          type: string
+          description: The IBAN associated with a wallet details.
+    aisp_pisp_payout_data:
+      description: AISP/PISP Payout data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - $ref: '#/components/schemas/object_id'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - payout
+          attributes:
+            properties:
+              source:
+                $ref: '#/components/schemas/transaction_wallet_info'
+              destination:
+                $ref: '#/components/schemas/transaction_beneficiary_info'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              created_by:
+                $ref: '#/components/schemas/created_by'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              signature:
+                $ref: '#/components/schemas/signature'
+    vasp_name:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °, ., ;, space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.;-]*$
+    country_code:
+      type: string
+      description: Code 2 characters of country
+      pattern: ^[A-Z]{2}$
+    approval_group:
+      description: An approver group whose authorization rule is still awaiting a sign-off.
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        name:
+          type: string
+    positive_amount:
+      type: string
+      description: Strictly positive amount expressed in the currency of the transaction.
+      example: '1000'
+      pattern: ^\d+(\.\d+)?$
+    sort:
+      type: string
+      default: created_at
+      example: created_at
+      description: The sort field used to filter data.
+    beneficiary_travel_rule_custodial:
+      description: Custodial travel rule information.
+      type: object
+      oneOf:
+      - properties:
+          vasp_name:
+            $ref: '#/components/schemas/vasp_name'
+          vasp_did:
+            type: string
+            pattern: ^did:[a-zA-Z0-9]*:.*$
+            example: did:ethr:0x123456789abcdef
+        required:
+        - vasp_did
+      - properties:
+          vasp_name:
+            $ref: '#/components/schemas/vasp_name'
+          vasp_website:
+            type: string
+            format: url
+        required:
+        - vasp_website
+        - vasp_name
+    meta:
+      description: Metadata of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              oneOf:
+              - $ref: '#/components/schemas/uuid'
+              - $ref: '#/components/schemas/request_id'
+            query_parameters:
+              $ref: '#/components/schemas/query_parameters'
+    conversion_data:
+      description: Conversion data without id.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            $ref: '#/components/schemas/uuid'
+          type:
+            type: string
+            enum:
+            - conversion
+          attributes:
+            required:
+            - sell_wallet_id
+            - sell_wallet_name
+            - sell_asset_code
+            - sell_amount
+            - buy_wallet_id
+            - buy_wallet_name
+            - buy_asset_code
+            - buy_amount
+            - requested_by
+            - requested_by_user_name
+            - transaction_id
+            - created_at
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              sell_wallet_name:
+                $ref: '#/components/schemas/sanitized_string'
+              sell_asset_code:
+                $ref: '#/components/schemas/asset'
+              sell_amount:
+                $ref: '#/components/schemas/positive_amount'
+              buy_wallet_id:
+                $ref: '#/components/schemas/uuid'
+              buy_wallet_name:
+                $ref: '#/components/schemas/sanitized_string'
+              buy_asset_code:
+                $ref: '#/components/schemas/asset'
+              buy_amount:
+                $ref: '#/components/schemas/positive_amount'
+              requested_by:
+                $ref: '#/components/schemas/uuid'
+              requested_by_user_name:
+                $ref: '#/components/schemas/sanitized_string'
+              dealt_by:
+                $ref: '#/components/schemas/uuid'
+              dealt_by_employee_email:
+                $ref: '#/components/schemas/employee_email'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              fee_percentage:
+                $ref: '#/components/schemas/positive_amount'
+    signature:
+      description: Data of signature.
+      type: object
+      properties:
+        quorum:
+          description: The required number of signatories.
+          allOf:
+          - $ref: '#/components/schemas/positive_integer'
+        signatories:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                $ref: '#/components/schemas/uuid'
+    valuations:
+      description: Valuations of an asset.
+      type: array
+      items:
+        $ref: '#/components/schemas/valuation'
+      example:
+      - asset: EUR
+        value: '10.05'
+      - asset: USD
+        value: '12.97'
+    sanitized_string:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
+    public_payout_data:
+      description: Public payout data.
+      allOf:
+      - $ref: '#/components/schemas/payout_data'
+      - type: object
+        properties:
+          caller_can_approve:
+            type: boolean
+            readOnly: true
+            description: Whether the requesting user may approve the pending action on this transaction.
+          pending_action_initiated_by:
+            allOf:
+            - $ref: '#/components/schemas/uuid'
+            readOnly: true
+            description: User ID that initiated the pending action, if any.
+          approval_progress:
+            allOf:
+            - $ref: '#/components/schemas/approval_progress'
+            readOnly: true
+            description: AND multi-rule approval progress for the pending action, if any.
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/payout_status_public'
+    wallet_details_common:
+      description: Minimal info in common about Wallet Details.
+      type: object
+      required:
+      - asset
+      properties:
+        asset:
+          $ref: '#/components/schemas/asset'
+    sanitized_string_with_dot:
+      type: string
+      description: Allow alphanumeric, +, -, _, &, (, ), °, .,  space, single quote, comma, and all accented characters.
+      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.-]*$
+    create_company_aisp_pisp_data:
+      description: Request body for creating a new AISP/PISP user for a company.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - aisp_pisp
+          attributes:
+            required:
+            - aisp_pisp_id
+            - role
+            properties:
+              aisp_pisp_id:
+                $ref: '#/components/schemas/uuid'
+              role:
+                $ref: '#/components/schemas/aisp_pisp_role'
+    payin_status_public:
+      type: string
+      enum:
+      - in transit
+      - completed
+      - returned
+      - waiting for travel rule information
+      example: returned
+      description: Status of the payin.
+    wallet_subtype:
+      description: Subtype of a wallet.
+      type: string
+      enum:
+      - primary
+    aisp_pisp_role:
+      description: A defined aisp/pisp role.
+      type: string
+      enum:
+      - AISP
+      - AISP/PISP
+      example: AISP/PISP
+    uuid:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: 128-bit value used to uniquely identify an object.
+      example: 123e4567-e89b-12d3-a456-426614174000
+    approval_progress:
+      description: 'AND multi-rule approval progress for the pending action on an entity,
+
+        embedded in detail responses. Present only when a pending action exists;
+
+        a freshly-initiated action reports 0 of N.
+
+        '
+      type: object
+      required:
+      - approvals_received
+      - approvals_required
+      - pending_approver_groups
+      properties:
+        approvals_received:
+          type: integer
+        approvals_required:
+          type: integer
+        pending_approver_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/approval_group'
+    wallet_raw_data:
+      description: Wallet data without id
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        properties:
+          type:
+            type: string
+            default: wallet
+          attributes:
+            required:
+            - name
+            - asset
+            properties:
+              name:
+                description: The name given to the wallet.
+                type: string
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string'
+                minLength: 1
+                maxLength: 80
+              asset:
+                $ref: '#/components/schemas/asset'
+    aisp_pisp_data:
+      description: AISP/PISP information.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - $ref: '#/components/schemas/object_id'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - aisp_pisp
+          attributes:
+            required:
+            - name
+            properties:
+              name:
+                description: Name of the AISP/PISP.
+                type: string
+    payout_data:
+      description: Payout data.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        required:
+        - type
+        - id
+        properties:
+          type:
+            type: string
+            enum:
+            - payout
+          id:
+            $ref: '#/components/schemas/uuid'
+          attributes:
+            properties:
+              operation_id:
+                $ref: '#/components/schemas/uuid'
+              source:
+                $ref: '#/components/schemas/transaction_wallet_info'
+              destination:
+                $ref: '#/components/schemas/transaction_beneficiary_info'
+              amount:
+                $ref: '#/components/schemas/positive_amount'
+              valuations:
+                $ref: '#/components/schemas/valuations'
+              transaction_id:
+                $ref: '#/components/schemas/uuid'
+              created_at:
+                $ref: '#/components/schemas/created_at'
+              asset_code:
+                $ref: '#/components/schemas/asset'
+              created_by:
+                $ref: '#/components/schemas/created_by'
+              reference:
+                $ref: '#/components/schemas/fiat_reference'
+              signature:
+                $ref: '#/components/schemas/signature'
+              blockchain_data:
+                $ref: '#/components/schemas/blockchain_data'
+              open_trade:
+                $ref: '#/components/schemas/open_trade'
+    pagination:
+      description: Information about the pagination of the request
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          type: object
+          required:
+          - total_results
+          - query_parameters
+          properties:
+            total_results:
+              description: The total number of results
+              type: number
+              example: 100
+            query_parameters:
+              allOf:
+              - $ref: '#/components/schemas/query_parameters'
+              required:
+              - page_number
+              - page_size
+              - sort
+              properties:
+                page_number:
+                  type: number
+                  example: 1
+                page_size:
+                  type: number
+                  example: 100
+                sort:
+                  type: string
+                  example: created_at
+    open_trade:
+      description: Data from open trade transfer
+      type: object
+      required:
+      - amount
+      - asset
+      properties:
+        asset:
+          $ref: '#/components/schemas/asset'
+        amount:
+          $ref: '#/components/schemas/positive_amount'
+    address_required_constraint_all_fields:
+      type: object
+      description: Constraint on address component to ensure all fields are set.
+      required:
+      - street_address
+      - zip_code
+      - city
+      - country_code
+    data_default:
+      description: Fields required on all objects.
+      type: object
+      required:
+      - type
+      - attributes
+      properties:
+        type:
+          type: string
+        attributes:
+          type: object
+          minProperties: 1
+    wallet_details_beneficiary:
+      description: Wallet details digital/fiat used for beneficiary.
+      anyOf:
+      - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
+      - $ref: '#/components/schemas/beneficiary_wallet_details_digital_tag'
+      - $ref: '#/components/schemas/beneficiary_wallet_details_fiat'
+    public_payment_link_transaction_data:
+      description: Public payment-link data.
+      allOf:
+      - $ref: '#/components/schemas/payment_link_transaction_data'
+      - type: object
+        properties:
+          attributes:
+            required:
+            - status
+            properties:
+              status:
+                $ref: '#/components/schemas/payin_status_public'
+    positive_integer:
+      type: integer
+      example: 10000
+      maximum: 2147483647
+      minimum: 0
+      description: Strictly positive int32.
+    beneficiary_raw_data:
+      description: Beneficiary information without id.
+      allOf:
+      - $ref: '#/components/schemas/data_default'
+      - type: object
+        properties:
+          type:
+            type: string
+            default: beneficiary
+          attributes:
+            required:
+            - description
+            - wallet_details
+            - beneficiary_info
+            properties:
+              description:
+                allOf:
+                - $ref: '#/components/schemas/sanitized_string_with_dot'
+                minLength: 1
+                maxLength: 80
+                description: Description of the beneficiary that you want to add (e.g. "external wallet account").
+              wallet_details:
+                $ref: '#/components/schemas/wallet_details_beneficiary'
+              beneficiary_info:
+                oneOf:
+                - $ref: '#/components/schemas/beneficiary_info_natural'
+                - $ref: '#/components/schemas/beneficiary_info_legal'
+                - $ref: '#/components/schemas/beneficiary_is_self'
+                discriminator:
+                  propertyName: type
+                  mapping:
+                    individual: '#/components/schemas/beneficiary_info_natural'
+                    company: '#/components/schemas/beneficiary_info_legal'
+                    self: '#/components/schemas/beneficiary_is_self'
+    asset_value:
+      type: string
+      description: The estimated value of the asset (based on the quote asset).
+    travel_rule_status:
+      description: Travel Rule status
+      type: string
+      enum:
+      - completed
+      - incomplete
+    forecasted_balance:
+      type: string
+      description: The forecasted balance of assets for the wallet.
     account_identifiers:
       description: 'Account + bank identifiers for a fiat beneficiary. This is the legacy
 
@@ -379,28 +1340,6 @@ components:
           enum:
           - checking
           - savings
-    wallet_address:
-      type: string
-      example: 0x71C*
-      description: The public address associated with a wallet details on the blockchain.
-    available_balance:
-      type: string
-      description: The current available balance of assets for the wallet.
-    transaction_type:
-      description: Type of transaction.
-      type: string
-      enum:
-      - payin
-      - payout
-      - conversion
-      - payment_link
-      - transfer
-      - internal_transfer
-    sort:
-      type: string
-      default: created_at
-      example: created_at
-      description: The sort field used to filter data.
     beneficiary_info_natural:
       description: Data about Beneficiary of type Natural.
       allOf:
@@ -445,30 +1384,144 @@ components:
             description: ISO 3166-1 alpha-2 nationality code. Maps to CPN `BENEFICIARY_NATIONALITY`.
             allOf:
             - $ref: '#/components/schemas/country_code'
-    meta:
-      description: Metadata of the request
+    beneficiary_wallet_details_digital:
+      description: Data about Wallet Details of type digital.
+      allOf:
+      - $ref: '#/components/schemas/wallet_details_common'
+      - type: object
+        required:
+        - address
+        properties:
+          address:
+            $ref: '#/components/schemas/wallet_address'
+          travel_rule:
+            $ref: '#/components/schemas/beneficiary_travel_rule'
+          travel_rule_status:
+            readOnly: true
+            allOf:
+            - $ref: '#/components/schemas/travel_rule_status'
+    wallet_address:
+      type: string
+      example: 0x71C*
+      description: The public address associated with a wallet details on the blockchain.
+    blockchain_data:
+      description: Data from the blockchain.
       type: object
       required:
-      - meta
+      - transaction_hash
+      - block_explorer_link
       properties:
-        meta:
-          type: object
-          required:
-          - request_id
-          properties:
-            request_id:
-              oneOf:
-              - $ref: '#/components/schemas/uuid'
-              - $ref: '#/components/schemas/request_id'
-            query_parameters:
-              $ref: '#/components/schemas/query_parameters'
-    payin_digital_source:
-      description: Source of a payin in digital currency.
+        transaction_hash:
+          description: The hash of the transaction.
+          type: string
+        block_explorer_link:
+          description: The link to the transaction on the block explorer.
+          type: string
+    beneficiary_info_legal:
+      description: Data about Beneficiary of type Legal.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_info_base'
+      - type: object
+        required:
+        - type
+        - name
+        - address
+        properties:
+          type:
+            type: string
+            enum:
+            - company
+          name:
+            type: string
+            description: The company name.
+            allOf:
+            - $ref: '#/components/schemas/company_name'
+            minLength: 1
+            maxLength: 70
+          address:
+            allOf:
+            - $ref: '#/components/schemas/address'
+            - $ref: '#/components/schemas/address_required_constraint_all_fields'
+          date_of_formation:
+            type: string
+            format: date
+            description: Date the legal entity was incorporated (YYYY-MM-DD). Maps to CPN `BENEFICIARY_DATE_OF_FORMATION`.
+            example: '2012-04-02'
+          country_of_formation_code:
+            description: ISO 3166-1 alpha-2 country of incorporation. Maps to CPN `BENEFICIARY_COUNTRY_OF_FORMATION`.
+            allOf:
+            - $ref: '#/components/schemas/country_code'
+    fiat_reference:
+      type: string
+      pattern: ^[a-zA-Z0-9-.&/\s]*$
+      minLength: 6
+      maxLength: 35
+      description: Payment reference used in fiat transactions to convey information about the payment being made. Allow alphanumeric, -, ., &, /, space and all accented characters. The minimum length must be 6 characters without counting the spaces.
+    created_by:
+      type: string
+      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
+      description: The id of the user that initiated the payout.
+    valuation:
+      description: Valuation of an asset.
       type: object
       properties:
-        address:
+        asset:
+          description: The quote asset of the provided valuation.
           type: string
-          description: The external wallet address that initiated the payment.
+          enum:
+          - EUR
+          - USD
+        value:
+          $ref: '#/components/schemas/asset_value'
+    beneficiary_data:
+      description: Beneficiary information with id
+      allOf:
+      - $ref: '#/components/schemas/object_id'
+      - $ref: '#/components/schemas/beneficiary_raw_data'
+      - type: object
+        properties:
+          attributes:
+            properties:
+              status:
+                $ref: '#/components/schemas/beneficiary_status'
+              internal:
+                type: boolean
+                readOnly: true
+                description: True if the beneficiary's bank details match a Fipto wallet deposit address. Cannot be used as an automation payout destination.
+              corridor:
+                $ref: '#/components/schemas/beneficiary_corridor'
+              created_by:
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+                readOnly: true
+                description: The id of the user that created the beneficiary.
+              pending_action_initiated_by:
+                allOf:
+                - $ref: '#/components/schemas/uuid'
+                readOnly: true
+                description: User ID that initiated the pending create_beneficiary action, if any.
+              caller_can_approve:
+                type: boolean
+                readOnly: true
+                description: Whether the requesting user may approve the pending action on this beneficiary.
+              approval_progress:
+                allOf:
+                - $ref: '#/components/schemas/approval_progress'
+                readOnly: true
+                description: AND multi-rule approval progress for the pending create_beneficiary action, if any.
+    beneficiary_wallet_details_digital_tag:
+      description: Data about Wallet Details of type digital with tag.
+      allOf:
+      - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
+      - type: object
+        maxLength: 80
+        properties:
+          tag:
+            type: string
+    account_number:
+      description: The account number of the beneficiary who will receive the funds. This is the unique identifier for the recipient's bank account.
+      type: string
+      example: FR1420041010050500013M02606
     payment_link_transaction_data:
       description: Payment-link data.
       allOf:
@@ -496,336 +1549,42 @@ components:
                 $ref: '#/components/schemas/payin_destination'
               transaction_id:
                 $ref: '#/components/schemas/uuid'
-    employee_email:
-      type: string
-      format: email
-      pattern: '@fipto\.com$'
-      example: employee@fipto.com
-      description: Email of the employee.
-    account_number:
-      description: The account number of the beneficiary who will receive the funds. This is the unique identifier for the recipient's bank account.
-      type: string
-      example: FR1420041010050500013M02606
-    country_code:
-      type: string
-      description: Code 2 characters of country
-      pattern: ^[A-Z]{2}$
-    open_trade:
-      description: Data from open trade transfer
-      type: object
-      required:
+    sort_transaction_list:
+      description: Possible sort for the list transaction.
+      allOf:
+      - $ref: '#/components/schemas/sort'
+      enum:
+      - created_at
       - amount
-      - asset
-      properties:
-        asset:
-          $ref: '#/components/schemas/asset'
-        amount:
-          $ref: '#/components/schemas/positive_amount'
-    public_payment_link_transaction_data:
-      description: Public payment-link data.
-      allOf:
-      - $ref: '#/components/schemas/payment_link_transaction_data'
-      - type: object
-        properties:
-          attributes:
-            required:
-            - status
-            properties:
-              status:
-                $ref: '#/components/schemas/payin_status_public'
-    beneficiary_wallet_details_fiat:
-      description: Data about Wallet Details of type fiat for beneficiary creation.
-      allOf:
-      - $ref: '#/components/schemas/wallet_details_common'
-      - $ref: '#/components/schemas/account_identifiers'
-    bank_identifier:
-      description: The bank's identification code, which can be either a BIC (Bank Identifier Code) for international transfers or a routing number for domestic transfers. This identifies the financial institution where the beneficiary's account is held.
-      type: string
-      example: BPPCFRTT
-    sanitized_string:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °,  space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°-]*$
-    payin_destination:
-      description: Destination of a payin
+      - status
+    transaction_data:
+      description: Transaction data.
+      oneOf:
+      - $ref: '#/components/schemas/public_payin_data'
+      - $ref: '#/components/schemas/public_payout_data'
+      - $ref: '#/components/schemas/public_conversion_data'
+      - $ref: '#/components/schemas/public_payment_link_transaction_data'
+      - $ref: '#/components/schemas/public_transfer_data'
+    transaction_beneficiary_info:
+      description: Information of beneficiary into a transaction.
       type: object
-      allOf:
-      - $ref: '#/components/schemas/transaction_wallet_info'
+      required:
+      - beneficiary_id
       properties:
-        wallet_details_id:
+        beneficiary_id:
           $ref: '#/components/schemas/uuid'
-        wallet_details_name:
+        beneficiary_description:
+          description: The description given to the beneficiary.
           type: string
-          description: The name of the wallet details.
-        wallet_details_address:
-          $ref: '#/components/schemas/wallet_address'
-        wallet_details_tag:
+          example: My beneficiary
+        beneficiary_address:
+          description: The blockchain address of the beneficiary.
           type: string
-          description: The tag associated with a wallet details on the blockchain.
-        wallet_details_iban:
+          example: 0x71C*
+        beneficiary_source_account:
+          description: The source account of the beneficiary.
           type: string
-          description: The IBAN associated with a wallet details.
-    positive_integer:
-      type: integer
-      example: 10000
-      maximum: 2147483647
-      minimum: 0
-      description: Strictly positive int32.
-    public_transfer_data:
-      description: Public transfer data.
-      allOf:
-      - $ref: '#/components/schemas/transfer_data'
-      - type: object
-        properties:
-          caller_can_approve:
-            type: boolean
-            readOnly: true
-            description: Whether the requesting user may approve the pending action on this transaction.
-          pending_action_initiated_by:
-            allOf:
-            - $ref: '#/components/schemas/uuid'
-            readOnly: true
-            description: User ID that initiated the pending action, if any.
-          approval_progress:
-            allOf:
-            - $ref: '#/components/schemas/approval_progress'
-            readOnly: true
-            description: AND multi-rule approval progress for the pending action, if any.
-          attributes:
-            required:
-            - status
-            properties:
-              status:
-                $ref: '#/components/schemas/transfer_status_public'
-    wallet_details_beneficiary:
-      description: Wallet details digital/fiat used for beneficiary.
-      anyOf:
-      - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
-      - $ref: '#/components/schemas/beneficiary_wallet_details_digital_tag'
-      - $ref: '#/components/schemas/beneficiary_wallet_details_fiat'
-    wallet_raw_data:
-      description: Wallet data without id
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        required:
-        - type
-        properties:
-          type:
-            type: string
-            default: wallet
-          attributes:
-            required:
-            - name
-            - asset
-            properties:
-              name:
-                description: The name given to the wallet.
-                type: string
-                allOf:
-                - $ref: '#/components/schemas/sanitized_string'
-                minLength: 1
-                maxLength: 80
-              asset:
-                $ref: '#/components/schemas/asset'
-    asset:
-      description: The symbol/ticker of the crypto asset.
-      type: string
-      example: BTC
-    beneficiary_wallet_details_digital_tag:
-      description: Data about Wallet Details of type digital with tag.
-      allOf:
-      - $ref: '#/components/schemas/beneficiary_wallet_details_digital'
-      - type: object
-        maxLength: 80
-        properties:
-          tag:
-            type: string
-    wallet_data:
-      description: Wallet information with id
-      allOf:
-      - $ref: '#/components/schemas/wallet_raw_data'
-      - type: object
-        required:
-        - id
-        properties:
-          id:
-            $ref: '#/components/schemas/uuid'
-          attributes:
-            required:
-            - balances
-            properties:
-              subtype:
-                $ref: '#/components/schemas/wallet_subtype'
-              balances:
-                type: object
-                required:
-                - available
-                - forecasted
-                properties:
-                  available:
-                    $ref: '#/components/schemas/available_balance'
-                  forecasted:
-                    $ref: '#/components/schemas/forecasted_balance'
-    create_company_aisp_pisp_data:
-      description: Request body for creating a new AISP/PISP user for a company.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - aisp_pisp
-          attributes:
-            required:
-            - aisp_pisp_id
-            - role
-            properties:
-              aisp_pisp_id:
-                $ref: '#/components/schemas/uuid'
-              role:
-                $ref: '#/components/schemas/aisp_pisp_role'
-    wallet_subtype:
-      description: Subtype of a wallet.
-      type: string
-      enum:
-      - primary
-    signature:
-      description: Data of signature.
-      type: object
-      properties:
-        quorum:
-          description: The required number of signatories.
-          allOf:
-          - $ref: '#/components/schemas/positive_integer'
-        signatories:
-          type: array
-          items:
-            type: object
-            properties:
-              user_id:
-                $ref: '#/components/schemas/uuid'
-    transfer_status_public:
-      type: string
-      enum:
-      - pending
-      - refused
-      - completed
-      - awaiting co-signer
-      - insufficient funds
-      - in process
-      - submitted
-      example: pending
-      description: Status of the transfer.
-    payin_fiat_source:
-      description: Source of a payin in fiat currency.
-      type: object
-      properties:
-        iban:
-          type: string
-          description: The IBAN of the bank account that initiated the payment.
-        bic:
-          type: string
-          description: The BIC of the bank account that initiated the payment.
-        name:
-          type: string
-          description: The name of the bank account that initiated the payment.
-        physical_address:
-          type: string
-          description: The physical address of the bank account that initiated the payment.
-        country:
-          type: string
-          description: The country of the bank account that initiated the payment.
-    sanitized_name:
-      type: string
-      description: A string that must contain only upper and lower case letters, spaces, hyphens, and single quote characters
-      pattern: ^[a-zA-Z\s\-'À-ſ]+$
-    blockchain_data:
-      description: Data from the blockchain.
-      type: object
-      required:
-      - transaction_hash
-      - block_explorer_link
-      properties:
-        transaction_hash:
-          description: The hash of the transaction.
-          type: string
-        block_explorer_link:
-          description: The link to the transaction on the block explorer.
-          type: string
-    travel_rule_non_custodial:
-      description: Non custodial travel rule information.
-      type: object
-      required:
-      - is_self_hosted
-      properties:
-        is_self_hosted:
-          type: boolean
-          enum:
-          - true
-    valuation:
-      description: Valuation of an asset.
-      type: object
-      properties:
-        asset:
-          description: The quote asset of the provided valuation.
-          type: string
-          enum:
-          - EUR
-          - USD
-        value:
-          $ref: '#/components/schemas/asset_value'
-    transaction_wallet_info:
-      description: Wallet information in a transaction.
-      type: object
-      required:
-      - wallet_id
-      - wallet_name
-      properties:
-        wallet_id:
-          $ref: '#/components/schemas/uuid'
-        wallet_name:
-          type: string
-          description: The name of the wallet.
-          example: My wallet
-    created_by:
-      type: string
-      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
-      description: The id of the user that initiated the payout.
-    fiat_reference:
-      type: string
-      pattern: ^[a-zA-Z0-9-.&/\s]*$
-      minLength: 6
-      maxLength: 35
-      description: Payment reference used in fiat transactions to convey information about the payment being made. Allow alphanumeric, -, ., &, /, space and all accented characters. The minimum length must be 6 characters without counting the spaces.
-    beneficiary_status:
-      description: Beneficiary status
-      type: string
-      enum:
-      - active
-      - pending
-      - rejected
-      - awaiting_approval
-    valuations:
-      description: Valuations of an asset.
-      type: array
-      items:
-        $ref: '#/components/schemas/valuation'
-      example:
-      - asset: EUR
-        value: '10.05'
-      - asset: USD
-        value: '12.97'
-    payin_status_public:
-      type: string
-      enum:
-      - in transit
-      - completed
-      - returned
-      - waiting for travel rule information
-      example: returned
-      description: Status of the payin.
+          example: FR1420041010050500013M02606
     address:
       type: object
       description: A physical address.
@@ -864,812 +1623,19 @@ components:
           description: State / province / administrative division. Maps to CPN ADDRESS.stateProvince.
           maxLength: 70
           example: Guangdong
-    created_at:
-      type: string
-      format: date-time
-      description: The specific date on which the transaction has been created.
-    sort_wallets_list:
-      description: Possible sort for the list wallet.
-      allOf:
-      - $ref: '#/components/schemas/sort'
-      enum:
-      - created_at
-      - name
-      - asset_code
-      - value
-    request_id:
-      type: string
-      pattern: '[0-9]-[0-9a-fA-F]{8}-[0-9a-fA-F]{24}'
-      description: Request identifier.
-    travel_rule_status:
-      description: Travel Rule status
-      type: string
-      enum:
-      - completed
-      - incomplete
-    company_name:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), ., space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,.\-]*$
-      maxLength: 100
-    beneficiary_is_self:
-      description: Is self type for the beneficiary.
-      type: object
-      required:
-      - type
-      properties:
-        type:
-          type: string
-          enum:
-          - self
-    aisp_pisp_payout_initiate_raw_data:
-      description: AISP/PISP Payout data to initiate a payout.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - payout
-          attributes:
-            type: object
-            required:
-            - beneficiary_id
-            - amount
-            - reference
-            properties:
-              beneficiary_id:
-                $ref: '#/components/schemas/uuid'
-              amount:
-                $ref: '#/components/schemas/positive_amount'
-              reference:
-                $ref: '#/components/schemas/fiat_reference'
-    beneficiary_travel_rule_custodial:
-      description: Custodial travel rule information.
-      type: object
-      oneOf:
-      - properties:
-          vasp_name:
-            $ref: '#/components/schemas/vasp_name'
-          vasp_did:
-            type: string
-            pattern: ^did:[a-zA-Z0-9]*:.*$
-            example: did:ethr:0x123456789abcdef
-        required:
-        - vasp_did
-      - properties:
-          vasp_name:
-            $ref: '#/components/schemas/vasp_name'
-          vasp_website:
-            type: string
-            format: url
-        required:
-        - vasp_website
-        - vasp_name
-    aisp_pisp_role:
-      description: A defined aisp/pisp role.
-      type: string
-      enum:
-      - AISP
-      - AISP/PISP
-      example: AISP/PISP
-    data_default:
-      description: Fields required on all objects.
-      type: object
-      required:
-      - type
-      - attributes
-      properties:
-        type:
-          type: string
-        attributes:
-          type: object
-          minProperties: 1
-    vasp_name:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °, ., ;, space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.;-]*$
-    sort_transaction_list:
-      description: Possible sort for the list transaction.
-      allOf:
-      - $ref: '#/components/schemas/sort'
-      enum:
-      - created_at
-      - amount
-      - status
-    transaction_conversion_status_public:
-      type: string
-      enum:
-      - confirmed
-      - completed
-      - returned
-      - insufficient funds
-      example: confirmed
-      description: Status of the conversion transaction.
-    aisp_pisp_company_data:
-      description: AISP/PISP user information
-      allOf:
-      - $ref: '#/components/schemas/object_id'
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - aisp_pisp
-          attributes:
-            required:
-            - name
-            - role
-            properties:
-              name:
-                description: Name of the AISP/PISP.
-                type: string
-              role:
-                $ref: '#/components/schemas/aisp_pisp_role'
-    beneficiary_info_legal:
-      description: Data about Beneficiary of type Legal.
-      allOf:
-      - $ref: '#/components/schemas/beneficiary_info_base'
-      - type: object
-        required:
-        - type
-        - name
-        - address
-        properties:
-          type:
-            type: string
-            enum:
-            - company
-          name:
-            type: string
-            description: The company name.
-            allOf:
-            - $ref: '#/components/schemas/company_name'
-            minLength: 1
-            maxLength: 70
-          address:
-            allOf:
-            - $ref: '#/components/schemas/address'
-            - $ref: '#/components/schemas/address_required_constraint_all_fields'
-          date_of_formation:
-            type: string
-            format: date
-            description: Date the legal entity was incorporated (YYYY-MM-DD). Maps to CPN `BENEFICIARY_DATE_OF_FORMATION`.
-            example: '2012-04-02'
-          country_of_formation_code:
-            description: ISO 3166-1 alpha-2 country of incorporation. Maps to CPN `BENEFICIARY_COUNTRY_OF_FORMATION`.
-            allOf:
-            - $ref: '#/components/schemas/country_code'
-    beneficiary_corridor:
-      type: string
-      readOnly: true
-      description: The beneficiary's payout corridor — the discriminator used on typed create. `digital` for crypto wallets; for fiat, the destination currency (e.g. `EUR`, `USD`, `COP`) or a `<CURRENCY>_<IDENTIFIER>` key for the multi-form rails (BRL PIX, HKD FPS). Read-only.
-      enum:
-      - digital
-      - EUR
-      - USD
-      - COP
-      - MXN
-      - NGN
-      - SGD
-      - CNY
-      - PHP
-      - BRL_TAX_ID
-      - BRL_EVP_RANDOM
-      - BRL_EMAIL
-      - BRL_PHONE_NUMBER
-      - HKD_FPS_ID
-      - HKD_FPS_EMAIL
-      - HKD_FPS_PHONE_NUMBER
-      - HKD_FPS_ACCOUNT_NUMBER
-      - HKD_ACCOUNT_NUMBER
-      example: COP
-    query_parameters:
-      description: Information about the parameters in the request. All query string parameters provided (or implicit/with default value) will be returned
-      type: object
-    transaction_beneficiary_info:
-      description: Information of beneficiary into a transaction.
-      type: object
-      required:
-      - beneficiary_id
-      properties:
-        beneficiary_id:
-          $ref: '#/components/schemas/uuid'
-        beneficiary_description:
-          description: The description given to the beneficiary.
-          type: string
-          example: My beneficiary
-        beneficiary_address:
-          description: The blockchain address of the beneficiary.
-          type: string
-          example: 0x71C*
-        beneficiary_source_account:
-          description: The source account of the beneficiary.
-          type: string
-          example: FR1420041010050500013M02606
-    beneficiary_travel_rule:
-      description: Travel rule data linked to a beneficiary
-      oneOf:
-      - $ref: '#/components/schemas/beneficiary_travel_rule_custodial'
-      - $ref: '#/components/schemas/travel_rule_non_custodial'
-      - type: object
-        readOnly: true
-        additionalProperties: false
-    public_payin_data:
-      description: Public payin data.
-      allOf:
-      - $ref: '#/components/schemas/payin_data'
-      - type: object
-        properties:
-          attributes:
-            required:
-            - status
-            properties:
-              status:
-                $ref: '#/components/schemas/payin_status_public'
-    beneficiary_data:
-      description: Beneficiary information with id
-      allOf:
-      - $ref: '#/components/schemas/object_id'
-      - $ref: '#/components/schemas/beneficiary_raw_data'
-      - type: object
-        properties:
-          attributes:
-            properties:
-              status:
-                $ref: '#/components/schemas/beneficiary_status'
-              internal:
-                type: boolean
-                readOnly: true
-                description: True if the beneficiary's bank details match a Fipto wallet deposit address. Cannot be used as an automation payout destination.
-              corridor:
-                $ref: '#/components/schemas/beneficiary_corridor'
-              created_by:
-                allOf:
-                - $ref: '#/components/schemas/uuid'
-                readOnly: true
-                description: The id of the user that created the beneficiary.
-              pending_action_initiated_by:
-                allOf:
-                - $ref: '#/components/schemas/uuid'
-                readOnly: true
-                description: User ID that initiated the pending create_beneficiary action, if any.
-              caller_can_approve:
-                type: boolean
-                readOnly: true
-                description: Whether the requesting user may approve the pending action on this beneficiary.
-              approval_progress:
-                allOf:
-                - $ref: '#/components/schemas/approval_progress'
-                readOnly: true
-                description: AND multi-rule approval progress for the pending create_beneficiary action, if any.
-    forecasted_balance:
-      type: string
-      description: The forecasted balance of assets for the wallet.
-    approval_progress:
-      description: 'AND multi-rule approval progress for the pending action on an entity,
-
-        embedded in detail responses. Present only when a pending action exists;
-
-        a freshly-initiated action reports 0 of N.
-
-        '
-      type: object
-      required:
-      - approvals_received
-      - approvals_required
-      - pending_approver_groups
-      properties:
-        approvals_received:
-          type: integer
-        approvals_required:
-          type: integer
-        pending_approver_groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/approval_group'
-    conversion_data:
-      description: Conversion data without id.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        required:
-        - id
-        properties:
-          id:
-            $ref: '#/components/schemas/uuid'
-          type:
-            type: string
-            enum:
-            - conversion
-          attributes:
-            required:
-            - sell_wallet_id
-            - sell_wallet_name
-            - sell_asset_code
-            - sell_amount
-            - buy_wallet_id
-            - buy_wallet_name
-            - buy_asset_code
-            - buy_amount
-            - requested_by
-            - requested_by_user_name
-            - transaction_id
-            - created_at
-            properties:
-              operation_id:
-                $ref: '#/components/schemas/uuid'
-              sell_wallet_id:
-                $ref: '#/components/schemas/uuid'
-              sell_wallet_name:
-                $ref: '#/components/schemas/sanitized_string'
-              sell_asset_code:
-                $ref: '#/components/schemas/asset'
-              sell_amount:
-                $ref: '#/components/schemas/positive_amount'
-              buy_wallet_id:
-                $ref: '#/components/schemas/uuid'
-              buy_wallet_name:
-                $ref: '#/components/schemas/sanitized_string'
-              buy_asset_code:
-                $ref: '#/components/schemas/asset'
-              buy_amount:
-                $ref: '#/components/schemas/positive_amount'
-              requested_by:
-                $ref: '#/components/schemas/uuid'
-              requested_by_user_name:
-                $ref: '#/components/schemas/sanitized_string'
-              dealt_by:
-                $ref: '#/components/schemas/uuid'
-              dealt_by_employee_email:
-                $ref: '#/components/schemas/employee_email'
-              created_at:
-                $ref: '#/components/schemas/created_at'
-              transaction_id:
-                $ref: '#/components/schemas/uuid'
-              fee_percentage:
-                $ref: '#/components/schemas/positive_amount'
-    transfer_data:
-      description: Transfer data.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        required:
-        - type
-        - id
-        properties:
-          type:
-            type: string
-            enum:
-            - transfer
-          id:
-            $ref: '#/components/schemas/uuid'
-          attributes:
-            required:
-            - source_company_name
-            - destination_company_name
-            - source_wallet_id
-            - destination_wallet_id
-            - asset_code
-            - amount
-            - transaction_id
-            - created_at
-            properties:
-              operation_id:
-                $ref: '#/components/schemas/uuid'
-              batch_id:
-                $ref: '#/components/schemas/uuid'
-              source_company_name:
-                type: string
-              destination_company_name:
-                type: string
-              asset_code:
-                $ref: '#/components/schemas/asset'
-              amount:
-                $ref: '#/components/schemas/positive_amount'
-              valuations:
-                $ref: '#/components/schemas/valuations'
-              transaction_id:
-                $ref: '#/components/schemas/uuid'
-              source_wallet_id:
-                $ref: '#/components/schemas/uuid'
-              destination_wallet_id:
-                $ref: '#/components/schemas/uuid'
-              created_at:
-                $ref: '#/components/schemas/created_at'
-              created_by:
-                $ref: '#/components/schemas/created_by'
-              reference:
-                $ref: '#/components/schemas/fiat_reference'
-              signature:
-                $ref: '#/components/schemas/signature'
-    uuid:
-      type: string
-      pattern: '[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}'
-      description: 128-bit value used to uniquely identify an object.
-      example: 123e4567-e89b-12d3-a456-426614174000
-    beneficiary_raw_data:
-      description: Beneficiary information without id.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        properties:
-          type:
-            type: string
-            default: beneficiary
-          attributes:
-            required:
-            - description
-            - wallet_details
-            - beneficiary_info
-            properties:
-              description:
-                allOf:
-                - $ref: '#/components/schemas/sanitized_string_with_dot'
-                minLength: 1
-                maxLength: 80
-                description: Description of the beneficiary that you want to add (e.g. "external wallet account").
-              wallet_details:
-                $ref: '#/components/schemas/wallet_details_beneficiary'
-              beneficiary_info:
-                oneOf:
-                - $ref: '#/components/schemas/beneficiary_info_natural'
-                - $ref: '#/components/schemas/beneficiary_info_legal'
-                - $ref: '#/components/schemas/beneficiary_is_self'
-                discriminator:
-                  propertyName: type
-                  mapping:
-                    individual: '#/components/schemas/beneficiary_info_natural'
-                    company: '#/components/schemas/beneficiary_info_legal'
-                    self: '#/components/schemas/beneficiary_is_self'
-    public_payout_data:
-      description: Public payout data.
-      allOf:
-      - $ref: '#/components/schemas/payout_data'
-      - type: object
-        properties:
-          caller_can_approve:
-            type: boolean
-            readOnly: true
-            description: Whether the requesting user may approve the pending action on this transaction.
-          pending_action_initiated_by:
-            allOf:
-            - $ref: '#/components/schemas/uuid'
-            readOnly: true
-            description: User ID that initiated the pending action, if any.
-          approval_progress:
-            allOf:
-            - $ref: '#/components/schemas/approval_progress'
-            readOnly: true
-            description: AND multi-rule approval progress for the pending action, if any.
-          attributes:
-            required:
-            - status
-            properties:
-              status:
-                $ref: '#/components/schemas/payout_status_public'
-    address_required_constraint_all_fields:
-      type: object
-      description: Constraint on address component to ensure all fields are set.
-      required:
-      - street_address
-      - zip_code
-      - city
-      - country_code
-    payout_data:
-      description: Payout data.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        required:
-        - type
-        - id
-        properties:
-          type:
-            type: string
-            enum:
-            - payout
-          id:
-            $ref: '#/components/schemas/uuid'
-          attributes:
-            properties:
-              operation_id:
-                $ref: '#/components/schemas/uuid'
-              source:
-                $ref: '#/components/schemas/transaction_wallet_info'
-              destination:
-                $ref: '#/components/schemas/transaction_beneficiary_info'
-              amount:
-                $ref: '#/components/schemas/positive_amount'
-              valuations:
-                $ref: '#/components/schemas/valuations'
-              transaction_id:
-                $ref: '#/components/schemas/uuid'
-              created_at:
-                $ref: '#/components/schemas/created_at'
-              asset_code:
-                $ref: '#/components/schemas/asset'
-              created_by:
-                $ref: '#/components/schemas/created_by'
-              reference:
-                $ref: '#/components/schemas/fiat_reference'
-              signature:
-                $ref: '#/components/schemas/signature'
-              blockchain_data:
-                $ref: '#/components/schemas/blockchain_data'
-              open_trade:
-                $ref: '#/components/schemas/open_trade'
-    sanitized_string_with_dot:
-      type: string
-      description: Allow alphanumeric, +, -, _, &, (, ), °, .,  space, single quote, comma, and all accented characters.
-      pattern: ^[a-zA-Z0-9À-ɏ\s+'()_&,°.-]*$
-    payin_data:
-      description: Payin data.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - type: object
-        required:
-        - type
-        - id
-        properties:
-          type:
-            type: string
-            enum:
-            - payin
-          id:
-            $ref: '#/components/schemas/uuid'
-          attributes:
-            properties:
-              operation_id:
-                $ref: '#/components/schemas/uuid'
-              asset_code:
-                $ref: '#/components/schemas/asset'
-              amount:
-                $ref: '#/components/schemas/positive_amount'
-              valuations:
-                $ref: '#/components/schemas/valuations'
-              created_at:
-                $ref: '#/components/schemas/created_at'
-              source:
-                anyOf:
-                - $ref: '#/components/schemas/payin_fiat_source'
-                - $ref: '#/components/schemas/payin_digital_source'
-              destination:
-                $ref: '#/components/schemas/payin_destination'
-              reference:
-                $ref: '#/components/schemas/fiat_reference'
-              transaction_id:
-                $ref: '#/components/schemas/uuid'
-              blockchain_data:
-                $ref: '#/components/schemas/blockchain_data'
-              open_trade:
-                $ref: '#/components/schemas/open_trade'
-    transaction_data:
-      description: Transaction data.
-      oneOf:
-      - $ref: '#/components/schemas/public_payin_data'
-      - $ref: '#/components/schemas/public_payout_data'
-      - $ref: '#/components/schemas/public_conversion_data'
-      - $ref: '#/components/schemas/public_payment_link_transaction_data'
-      - $ref: '#/components/schemas/public_transfer_data'
-    wallet_details_common:
-      description: Minimal info in common about Wallet Details.
-      type: object
-      required:
-      - asset
-      properties:
-        asset:
-          $ref: '#/components/schemas/asset'
-    approval_group:
-      description: An approver group whose authorization rule is still awaiting a sign-off.
-      type: object
-      required:
-      - id
-      - name
-      properties:
-        id:
-          $ref: '#/components/schemas/uuid'
-        name:
-          type: string
-    positive_amount:
-      type: string
-      description: Strictly positive amount expressed in the currency of the transaction.
-      example: '1000'
-      pattern: ^\d+(\.\d+)?$
-    aisp_pisp_data:
-      description: AISP/PISP information.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - $ref: '#/components/schemas/object_id'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - aisp_pisp
-          attributes:
-            required:
-            - name
-            properties:
-              name:
-                description: Name of the AISP/PISP.
-                type: string
-    beneficiary_wallet_details_digital:
-      description: Data about Wallet Details of type digital.
-      allOf:
-      - $ref: '#/components/schemas/wallet_details_common'
-      - type: object
-        required:
-        - address
-        properties:
-          address:
-            $ref: '#/components/schemas/wallet_address'
-          travel_rule:
-            $ref: '#/components/schemas/beneficiary_travel_rule'
-          travel_rule_status:
-            readOnly: true
-            allOf:
-            - $ref: '#/components/schemas/travel_rule_status'
-    beneficiary_info_base:
-      description: Shared CPN requirement fields for natural and legal beneficiaries. Not used directly; merged via allOf.
-      type: object
-      properties:
-        phone_number:
-          type: string
-          description: Contact phone number for the beneficiary, in E.164 form. Maps to CPN `BENEFICIARY_PHONE_NUMBER`.
-          pattern: ^\+?[1-9]\d{1,14}$
-          example: '+442012345678'
-        email:
-          type: string
-          format: email
-          description: Contact email for the beneficiary. Maps to CPN `BENEFICIARY_EMAIL`.
-          example: maria.gomez@example.com
-        national_identification_number:
-          type: string
-          description: National identification document number (CURP/RFC for MX, CPF/CNPJ for BR, NRIC for SG, etc.). Maps to CPN `BENEFICIARY_NATIONAL_IDENTIFICATION_NUMBER` and `RECIPIENT_ID_NUMBER`.
-          example: '98765432100'
-        national_identification_expiration_date:
-          type: string
-          format: date
-          description: Expiry date of the national-identification document (YYYY-MM-DD).
-          example: '2031-08-15'
-    pagination:
-      description: Information about the pagination of the request
-      type: object
-      required:
-      - meta
-      properties:
-        meta:
-          type: object
-          required:
-          - total_results
-          - query_parameters
-          properties:
-            total_results:
-              description: The total number of results
-              type: number
-              example: 100
-            query_parameters:
-              allOf:
-              - $ref: '#/components/schemas/query_parameters'
-              required:
-              - page_number
-              - page_size
-              - sort
-              properties:
-                page_number:
-                  type: number
-                  example: 1
-                page_size:
-                  type: number
-                  example: 100
-                sort:
-                  type: string
-                  example: created_at
-    payout_status_public:
+    transfer_status_public:
       type: string
       enum:
       - pending
-      - rejected
+      - refused
       - completed
       - awaiting co-signer
       - insufficient funds
       - in process
       - submitted
-      - awaiting approval
       example: pending
-      description: Status of the payout.
-    object_id:
-      description: Unique id of object
-      type: object
-      properties:
-        id:
-          readOnly: true
-          allOf:
-          - $ref: '#/components/schemas/uuid'
-    aisp_pisp_payout_data:
-      description: AISP/PISP Payout data.
-      allOf:
-      - $ref: '#/components/schemas/data_default'
-      - $ref: '#/components/schemas/object_id'
-      - type: object
-        properties:
-          type:
-            type: string
-            enum:
-            - payout
-          attributes:
-            properties:
-              source:
-                $ref: '#/components/schemas/transaction_wallet_info'
-              destination:
-                $ref: '#/components/schemas/transaction_beneficiary_info'
-              amount:
-                $ref: '#/components/schemas/positive_amount'
-              transaction_id:
-                $ref: '#/components/schemas/uuid'
-              created_at:
-                $ref: '#/components/schemas/created_at'
-              asset_code:
-                $ref: '#/components/schemas/asset'
-              created_by:
-                $ref: '#/components/schemas/created_by'
-              reference:
-                $ref: '#/components/schemas/fiat_reference'
-              signature:
-                $ref: '#/components/schemas/signature'
-    public_conversion_data:
-      description: Public conversion data.
-      allOf:
-      - $ref: '#/components/schemas/conversion_data'
-      - type: object
-        properties:
-          attributes:
-            required:
-            - status
-            properties:
-              status:
-                $ref: '#/components/schemas/transaction_conversion_status_public'
-    asset_value:
-      type: string
-      description: The estimated value of the asset (based on the quote asset).
+      description: Status of the transfer.
   parameters:
-    sort:
-      name: sort
-      in: query
-      required: false
-      schema:
-        type: string
-        example: created_at
-        enum:
-        - created_at
-        - transaction_created_at
-    page_size_optional:
-      name: page_size
-      in: query
-      required: false
-      description: The number of items to include in each page of the paginated results. The default value is 100. The pagination is removed when the value is 0 (unlimited number of elements are returned).
-      schema:
-        type: number
-        example: 100
-    aisp_pisp_id:
-      name: aisp_pisp_id
-      in: path
-      required: true
-      description: The AISP/PISP id given by Fipto.
-      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
-      schema:
-        $ref: '#/components/schemas/uuid'
-    transaction_id:
-      name: transaction_id
-      in: path
-      required: true
-      description: The Transaction ID given by Fipto.
-      example: 8f6a1c57-3025-4a27-95da-218bf79f9eb5
-      schema:
-        $ref: '#/components/schemas/uuid'
     filter_transaction_types:
       name: transaction_types
       in: query
@@ -1699,22 +1665,14 @@ components:
         uniqueItems: true
         items:
           $ref: '#/components/schemas/asset'
-    page_size:
+    page_size_optional:
       name: page_size
       in: query
       required: false
-      description: The number of items to include in each page of the paginated results. The default value is 100.
+      description: The number of items to include in each page of the paginated results. The default value is 100. The pagination is removed when the value is 0 (unlimited number of elements are returned).
       schema:
         type: number
         example: 100
-    page_number:
-      name: page_number
-      in: query
-      required: false
-      description: The page number retrieved in the paginated results. The default value is 1.
-      schema:
-        type: number
-        example: 1
     beneficiary_id:
       name: beneficiary_id
       in: path
@@ -1723,6 +1681,30 @@ components:
       example: 0967e211-93c9-481f-978a-182eef29c80a
       schema:
         $ref: '#/components/schemas/uuid'
+    page_size:
+      name: page_size
+      in: query
+      required: false
+      description: The number of items to include in each page of the paginated results. The default value is 100.
+      schema:
+        type: number
+        example: 100
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      description: The Company ID given by Fipto.
+      example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    page_number:
+      name: page_number
+      in: query
+      required: false
+      description: The page number retrieved in the paginated results. The default value is 1.
+      schema:
+        type: number
+        example: 1
     filter_wallet_id:
       name: wallet_id
       in: query
@@ -1730,12 +1712,30 @@ components:
       description: Filter for a specific wallet_id.
       schema:
         $ref: '#/components/schemas/uuid'
-    company_id:
-      name: company_id
+    sort:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        example: created_at
+        enum:
+        - created_at
+        - transaction_created_at
+    aisp_pisp_id:
+      name: aisp_pisp_id
       in: path
       required: true
-      description: The Company ID given by Fipto.
+      description: The AISP/PISP id given by Fipto.
       example: 9de0691c-bc8d-409b-8f40-75d4f45db2f3
+      schema:
+        $ref: '#/components/schemas/uuid'
+    transaction_id:
+      name: transaction_id
+      in: path
+      required: true
+      description: The Transaction ID given by Fipto.
+      example: 8f6a1c57-3025-4a27-95da-218bf79f9eb5
       schema:
         $ref: '#/components/schemas/uuid'
 x-topics:
