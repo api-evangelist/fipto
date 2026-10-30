@@ -64,13 +64,144 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Fipto is a Paris-based enterprise stablecoin payments and multi-currency accounts platform that lets businesses send and receive both fiat and stablecoin payments, hold multi-asset wallets with EUR and USD named accounts, convert between fiat and digital currencies, and automate treasury and reconciliation. Fipto PI SAS is licensed as a Payment Institution by France's ACPR (CIB 17908) and as a Crypto-Asset Service Provider by the AMF under MiCA (authorisation A2026-009), and is ISO/IEC 27001:2022 certified.
+Fipto is a Paris-based enterprise stablecoin payments and multi-currency accounts platform that lets businesses send and receive both fiat and stablecoin payments, hold multi-asset wallets with EUR and USD named accounts, convert between fiat and digital currencies, and automate treasury and reconciliation. It is licensed as a Payment Institution by France's ACPR (code 17908) and as a Crypto-Asset Service Provider by the AMF under MiCA (authorization A2026-009), and is ISO/IEC 27001:2022 certified. Fipto publishes a REST API (OpenAPI 3.0.3) covering wallets, beneficiaries, payouts, transactions, conversions, payment links, automation rules and an AISP/PISP access surface, plus signed webhooks and an open-source Model Context Protocol server for AI agents.
 
-Fipto publishes a REST API (OpenAPI 3.0.3, version 4.3.0 — 39 paths, 52 operations) covering wallets, beneficiaries, payouts, transactions, conversions, payment links, automation rules and a PSD2 AISP/PISP delegated-access surface, plus a signed webhook contract and an open-source Model Context Protocol server for AI agents.
+**Areas:** Company · Blockchain · Payments · Stablecoins · Banking · Treasury · Cross-Border Payments · Digital Currency · Fintech · Wallets
 
-- Documentation: https://docs.fipto.com/
-- API reference: https://docs.fipto.com/reference/getting-started
-- Status: https://status.fipto.com/
-- MCP server: https://github.com/fipto/mcp-fipto
+## Fipto on APIs.io
 
-Source: portfolio company of [serena](https://github.com/api-evangelist/serena) — https://fipto.com
+Everything profiled for Fipto is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/fipto/](https://apis.io/providers/fipto/)** — or go straight to one of the APIs or properties below.
+
+### APIs (12)
+
+- [Fipto AISP/PISP API](https://apis.io/apis/fipto/fipto-aisp-pisp-api/) — Endpoints for AISP/PISP.
+- [Fipto Assets API](https://apis.io/apis/fipto/fipto-assets-api/) — Retrieve information about assets supported by Fipto.
+- [Fipto Automations API](https://apis.io/apis/fipto/fipto-automations-api/) — The Automations API from Fipto — 2 operation(s) for automations.
+- [Fipto Beneficiaries API](https://apis.io/apis/fipto/fipto-beneficiaries-api/) — Manage your beneficiaries to whitelist addresses for payout.
+- [Fipto Companies API](https://apis.io/apis/fipto/fipto-companies-api/) — Manage information and settings of a company.
+- [Fipto Conversions API](https://apis.io/apis/fipto/fipto-conversions-api/) — Manage conversions.
+- [Fipto Internal Transfers API](https://apis.io/apis/fipto/fipto-internal-transfers-api/) — The Internal Transfers API from Fipto — 1 operation(s) for internal transfers.
+- [Fipto Payin Simulation API](https://apis.io/apis/fipto/fipto-payin-simulation-api/) — The Payin Simulation API from Fipto — 1 operation(s) for payin simulation.
+- [Fipto Payment links API](https://apis.io/apis/fipto/fipto-payment-links-api/) — Manage payment links.
+- [Fipto Transactions API](https://apis.io/apis/fipto/fipto-transactions-api/) — Initiate payout and retrieve information about ongoing and completed transactions.
+- [Fipto Travel Rule API](https://apis.io/apis/fipto/fipto-travel-rule-api/) — The Travel Rule API from Fipto — 1 operation(s) for travel rule.
+- [Fipto Wallets API](https://apis.io/apis/fipto/fipto-wallets-api/) — Manage wallets and their related wallet details.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Fipto Webhooks](https://apis.io/asyncapis/fipto/fipto-webhooks/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [fipto](https://apis.io/servers/fipto/fipto/)
+
+#### Agentic access (1)
+
+Which operations an agent can call, which act, and which need a human in the loop.
+
+- [Fipto Agentic Access](https://apis.io/agentic-access/fipto/fipto-agentic-access/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Fipto Customer Api Overlay](https://apis.io/overlays/fipto/fipto-customer-api-overlay/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Fipto Authentication](https://apis.io/security/fipto/fipto-authentication/)
+- [Fipto Domain Security](https://apis.io/security/fipto/fipto-domain-security/)
+- [Fipto Trust Center](https://apis.io/security/fipto/fipto-trust-center/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Fipto Plans Pricing](https://apis.io/plans/fipto/fipto-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Fipto Rate Limits](https://apis.io/rate-limits/fipto/fipto-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://fipto.com)
+- [Documentation](https://docs.fipto.com/docs/introduction)
+- [Getting started](https://docs.fipto.com/docs/introduction)
+- [API reference](https://docs.fipto.com/reference/getting-started)
+- [Sign up](https://www.fipto.com/demo)
+- [Support](https://www.fipto.com/contact)
+- [Blog](https://www.fipto.com/company/blog)
+- [Compliance](https://www.fipto.com/company/compliance)
+- [Terms of service](https://www.fipto.com/legal/terms-and-conditions)
+- [Privacy policy](https://www.fipto.com/legal/privacy)
+- [Status](https://status.fipto.com/)
+
+## API Evangelist rating
+
+**Kin Score 48.6** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 71.7 |
+| Contract quality | 52.6 |
+| Contract governance | 18.2 |
+| Operational transparency | 15.8 |
+| Developer ergonomics | 58.9 |
+| Access clarity | 50.0 |
+
+**Agent readiness 32.1** — agent-ready
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | — |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | derived (partial credit) |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | yes |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | na |
+| Operation Distinctiveness | mostly |
+
+**Regulatory alignment 39.3** — Payments
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/fipto/](https://apis.io/providers/fipto/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Fipto: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/fipto/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
